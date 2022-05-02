@@ -1,0 +1,124 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Go-Auth
+  description: An authentication and authorization micro service API
+
+paths:
+  /signup:
+    post:
+      tags:
+        - sign up
+      description: Creates new user account in database
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request body for signing up new user
+              properties:
+                username:
+                  type: string
+                  description: Username with which new user account will be
+                    identified in the system
+                  maxLength: 30
+                  minLength: 3
+                  example: Nesquiko12
+                  pattern: ^(?=[a-zA-Z0-9]{3,30}$).*
+                email:
+                  type: string
+                  description: Email address of a new user account
+                  maxLength: 254
+                  pattern: ^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$
+                  example: foo@bar.foo.com
+                password:
+                  type: string
+                  description: Password for getting access to the new user account
+                  maxLength: 32
+                  minLength: 6
+                  pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
+                  example: mySecretPassword123
+              additionalProperties: false
+      responses:
+        201:
+          description: Succesfully signed up (created) a new user
+      
+        409:
+          description: Either an username or an email is already used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /login:
+    post:
+      tags:
+        - log in
+      description: Endpoint for authenticating a user based on username
+        and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Username of an user account
+                  maxLength: 30
+                  minLength: 3
+                  example: Nesquiko12
+                  pattern: ^(?=[a-zA-Z0-9]{3,30}$).*
+                password:
+                  type: string
+                  description: Password of an user account
+                  maxLength: 32
+                  minLength: 6
+                  pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
+                  example: mySecretPassword123
+              additionalProperties: false
+      responses:
+        200:
+          description: Submitted credentials are valid and response contains
+            a JWT access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    description: A JWT access token generated for this login session
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+                additionalProperties: false
+        401:
+          description: User submitted invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+
+            
+components:
+  schemas:
+    ProblemDetails:
+      type: object
+      description: A problem details response, which occured during processing
+        of a request
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          description: An URI for identifiyng problem type
+          example: email.already_registered
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type
+          example: Entered email is alredy used
+        detail:
+          type: string
+          description: Human-readable explanation specific to this
+            occurrence of the problem
+          example: Entered email address 'foo@bar.com' is already used
