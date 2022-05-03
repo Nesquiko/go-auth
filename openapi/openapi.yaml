@@ -10,36 +10,13 @@ paths:
       tags:
         - sign up
       description: Creates new user account in database
+      operationId: signup
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              description: Request body for signing up new user
-              properties:
-                username:
-                  type: string
-                  description: Username with which new user account will be
-                    identified in the system
-                  maxLength: 30
-                  minLength: 3
-                  example: Nesquiko12
-                  pattern: ^(?=[a-zA-Z0-9]{3,30}$).*
-                email:
-                  type: string
-                  description: Email address of a new user account
-                  maxLength: 254
-                  pattern: ^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$
-                  example: foo@bar.foo.com
-                password:
-                  type: string
-                  description: Password for getting access to the new user account
-                  maxLength: 32
-                  minLength: 6
-                  pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
-                  example: mySecretPassword123
-              additionalProperties: false
+              $ref: '#/components/schemas/SignupRequest'
       responses:
         201:
           description: Succesfully signed up (created) a new user
@@ -50,34 +27,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
   /login:
     post:
       tags:
         - log in
       description: Endpoint for authenticating a user based on username
         and password
+      operationId: login
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                  description: Username of an user account
-                  maxLength: 30
-                  minLength: 3
-                  example: Nesquiko12
-                  pattern: ^(?=[a-zA-Z0-9]{3,30}$).*
-                password:
-                  type: string
-                  description: Password of an user account
-                  maxLength: 32
-                  minLength: 6
-                  pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
-                  example: mySecretPassword123
-              additionalProperties: false
+              $ref: '#/components/schemas/LoginRequest'
+
       responses:
         200:
           description: Submitted credentials are valid and response contains
@@ -85,29 +55,92 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  access_token:
-                    type: string
-                    description: A JWT access token generated for this login session
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-                additionalProperties: false
+                $ref: '#/components/schemas/LoginResponse'
         401:
           description: User submitted invalid credentials
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
 
             
 components:
   schemas:
+    SignupRequest:
+      type: object
+      description: Request body for signing up new user
+      properties:
+        username:
+          type: string
+          description: Username with which new user account will be
+            identified in the system
+          maxLength: 30
+          minLength: 3
+          example: Nesquiko12
+          pattern: ^(?=[a-zA-Z0-9]{3,30}$).*
+        email:
+          type: string
+          description: Email address of a new user account
+          maxLength: 254
+          pattern: ^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$
+          example: foo@bar.foo.com
+        password:
+          type: string
+          description: Password for getting access to the new user account
+          maxLength: 32
+          minLength: 6
+          pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
+          example: mySecretPassword123
+      additionalProperties: false
+      required:
+        - username
+        - email
+        - password
+
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Username of an user account
+          maxLength: 30
+          minLength: 3
+          example: Nesquiko12
+          pattern: ^(?=[a-zA-Z0-9]{3,30}$).*
+        password:
+          type: string
+          description: Password of an user account
+          maxLength: 32
+          minLength: 6
+          pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
+          example: mySecretPassword123
+      additionalProperties: false
+      required:
+        - username
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: A JWT access token generated for this login session
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+      additionalProperties: false
+      required:
+        - access_token
+
+
     ProblemDetails:
       type: object
       description: A problem details response, which occured during processing
         of a request
-      additionalProperties: false
       properties:
         type:
           type: string
@@ -122,3 +155,8 @@ components:
           description: Human-readable explanation specific to this
             occurrence of the problem
           example: Entered email address 'foo@bar.com' is already used
+      additionalProperties: false
+      required:
+        - type
+        - title
+        - detail

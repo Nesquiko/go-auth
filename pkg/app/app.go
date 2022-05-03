@@ -4,19 +4,39 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Nesquiko/go-auth/pkg/api"
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 )
+
+type GoAuthServer struct{}
+
+func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
+}
 
 func StartServer() {
 	fmt.Println("Starting server...")
+	port := "8080"
+
 	r := chi.NewRouter()
-	r.Use(middleware.Logger)
+	middlewares := []api.MiddlewareFunc{
+		func(hf http.HandlerFunc) http.HandlerFunc {
+			return http.HandlerFunc(middleware.Logger(hf).ServeHTTP)
+		},
+	}
 
-	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello there!"))
-	})
+	var server GoAuthServer
+	servOpts := api.ChiServerOptions{
+		BaseRouter:  r,
+		Middlewares: middlewares,
+	}
 
-	fmt.Println("Listening on port 3000...")
-	http.ListenAndServe(":8080", r)
+	h := api.HandlerWithOptions(server, servOpts)
+
+	fmt.Printf("Listening on port %s...\n", port)
+	http.ListenAndServe(":"+port, h)
 }
