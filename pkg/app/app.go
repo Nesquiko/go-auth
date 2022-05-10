@@ -5,18 +5,10 @@ import (
 	"net/http"
 
 	"github.com/Nesquiko/go-auth/pkg/api"
+	"github.com/Nesquiko/go-auth/pkg/server"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 )
-
-type GoAuthServer struct{}
-
-func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
-}
 
 func StartServer() {
 	fmt.Println("Starting server...")
@@ -29,7 +21,7 @@ func StartServer() {
 		},
 	}
 
-	var server GoAuthServer
+	var server server.GoAuthServer
 	servOpts := api.ChiServerOptions{
 		BaseRouter:  r,
 		Middlewares: middlewares,
