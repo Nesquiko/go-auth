@@ -6,8 +6,8 @@ import (
 	"log"
 )
 
-func (db Connection) FetchUsers() ([]User, error) {
-	var users []User
+func (db Connection) FetchUsers() ([]UserEntity, error) {
+	var users []UserEntity
 
 	rows, err := db.Query("SELECT * FROM users")
 	if err != nil {
@@ -16,7 +16,7 @@ func (db Connection) FetchUsers() ([]User, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var user User
+		var user UserEntity
 		if err := rows.Scan(&user.Uuid, &user.Username, &user.Email, &user.PasswordHash); err != nil {
 			return nil, fmt.Errorf("error in scanning: %v", err)
 		}
@@ -28,9 +28,9 @@ func (db Connection) FetchUsers() ([]User, error) {
 	return users, nil
 }
 
-func (db Connection) UserByUsername(username string) (*User, error) {
+func (db Connection) UserByUsername(username string) (*UserEntity, error) {
 
-	var user User
+	var user UserEntity
 
 	row := db.QueryRow("SELECT * FROM users WHERE username = ?", username)
 
@@ -43,7 +43,7 @@ func (db Connection) UserByUsername(username string) (*User, error) {
 	return &user, nil
 }
 
-func (db Connection) SaveUser(user *User) error {
+func (db Connection) SaveUser(user *UserModel) error {
 	result, err := db.Exec(
 		"INSERT INTO users (username, email, passwordHash) VALUES (?, ?, ?)",
 		user.Username,
