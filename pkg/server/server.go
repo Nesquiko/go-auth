@@ -10,7 +10,9 @@ import (
 type GoAuthServer struct{}
 
 func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
-	db, err := db.Connect("root", "goAuthDB", "users", "127.0.0.1:3306")
+	db, closer, err := db.Connect("root", "goAuthDB", "users", "127.0.0.1:3306")
+	defer closer()
+
 	if err != nil {
 		panic(err)
 	}

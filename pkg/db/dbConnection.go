@@ -10,7 +10,7 @@ type Connection struct {
 	*sql.DB
 }
 
-func Connect(user, passwd, dbname, addr string) (*Connection, error) {
+func Connect(user, passwd, dbname, addr string) (*Connection, func(), error) {
 	var db *sql.DB
 	cfg := mysql.Config{
 		User:   user,
@@ -24,17 +24,13 @@ func Connect(user, passwd, dbname, addr string) (*Connection, error) {
 	db, err = sql.Open("mysql", cfg.FormatDSN())
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	pingErr := db.Ping()
 	if pingErr != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return &Connection{db}, err
-}
-
-func (c *Connection) Close() {
-	c.Close()
+	return &Connection{db}, func() { db.Close() }, err
 }
