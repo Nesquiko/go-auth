@@ -23,6 +23,9 @@ type ProblemDetails struct {
 	// Human-readable explanation specific to this occurrence of the problem
 	Detail string `json:"detail"`
 
+	// A http status code describing a problem
+	StatusCode int `json:"status_code"`
+
 	// A short, human-readable summary of the problem type
 	Title string `json:"title"`
 
