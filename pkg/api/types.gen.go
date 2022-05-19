@@ -6,10 +6,10 @@ package api
 // LoginRequest defines model for LoginRequest.
 type LoginRequest struct {
 	// Password of an user account
-	Password string `json:"password"`
+	Password string `json:"password" validate:"required"`
 
 	// Username of an user account
-	Username string `json:"username"`
+	Username string `json:"username" validate:"required"`
 }
 
 // LoginResponse defines model for LoginResponse.
@@ -20,29 +20,29 @@ type LoginResponse struct {
 
 // A problem details response, which occured during processing of a request
 type ProblemDetails struct {
+	// Human-readable explanation specific to this occurrence of the problem
+	Detail string `json:"detail"`
+
 	// A http status code describing a problem
 	StatusCode int `json:"status_code"`
-
-	// An URI for identifiyng problem type
-	Type string `json:"type"`
 
 	// A short, human-readable summary of the problem type
 	Title string `json:"title"`
 
-	// Human-readable explanation specific to this occurrence of the problem
-	Detail string `json:"detail"`
+	// An URI for identifiyng problem type
+	Type string `json:"type"`
 }
 
 // Request body for signing up new user
 type SignupRequest struct {
 	// Email address of a new user account
-	Email string `json:"email"`
+	Email string `json:"email" validate:"required"`
 
 	// Password for getting access to the new user account
-	Password string `json:"password"`
+	Password string `json:"password" validate:"required"`
 
 	// Username with which new user account will be identified in the system
-	Username string `json:"username"`
+	Username string `json:"username" validate:"required"`
 }
 
 // LoginJSONBody defines parameters for Login.

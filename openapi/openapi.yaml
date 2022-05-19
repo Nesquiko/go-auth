@@ -84,12 +84,16 @@ components:
           minLength: 3
           example: Nesquiko12
           pattern: ^(?=[a-zA-Z0-9]{3,30}$).*
+          x-oapi-codegen-extra-tags:
+            validate: required
         email:
           type: string
           description: Email address of a new user account
           maxLength: 320
           pattern: ^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$
           example: foo@bar.foo.com
+          x-oapi-codegen-extra-tags:
+            validate: required
         password:
           type: string
           description: Password for getting access to the new user account
@@ -97,6 +101,8 @@ components:
           minLength: 6
           pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
           example: mySecretPassword123
+          x-oapi-codegen-extra-tags:
+            validate: required
       additionalProperties: false
       required:
         - username
@@ -113,6 +119,8 @@ components:
           minLength: 3
           example: Nesquiko12
           pattern: ^(?=[a-zA-Z0-9]{3,30}$).*
+          x-oapi-codegen-extra-tags:
+            validate: required
         password:
           type: string
           description: Password of an user account
@@ -120,6 +128,8 @@ components:
           minLength: 6
           pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
           example: mySecretPassword123
+          x-oapi-codegen-extra-tags:
+            validate: required
       additionalProperties: false
       required:
         - username
