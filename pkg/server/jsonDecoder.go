@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	CONTENT_TYPE     = "Content-Type"
-	APPLICATION_JSON = "application/json"
+	contentType     = "Content-Type"
+	applicationJSON = "application/json"
 
-	MB = 1048576
+	maxSize = 1048576
 )
 
 type malformedRequest struct {
@@ -27,12 +27,12 @@ func (mr *malformedRequest) Error() string {
 
 func decodeJSONBody[T any](w http.ResponseWriter, r *http.Request, dest T) error {
 
-	if ct := r.Header.Get(CONTENT_TYPE); ct != APPLICATION_JSON {
+	if ct := r.Header.Get(contentType); ct != applicationJSON {
 		responseMsg := "Content-Type header is not application/json"
 		return &malformedRequest{status: http.StatusUnsupportedMediaType, msg: responseMsg}
 	}
 
-	r.Body = http.MaxBytesReader(w, r.Body, MB)
+	r.Body = http.MaxBytesReader(w, r.Body, maxSize)
 
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()

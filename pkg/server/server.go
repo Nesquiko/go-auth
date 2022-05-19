@@ -43,7 +43,7 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 
 func respondWithError(w http.ResponseWriter, problem api.ProblemDetails) {
 
-	w.Header().Set(CONTENT_TYPE, APPLICATION_JSON)
+	w.Header().Set(contentType, applicationJSON)
 	w.WriteHeader(problem.StatusCode)
 
 	json.NewEncoder(w).Encode(problem)
