@@ -20,17 +20,17 @@ type LoginResponse struct {
 
 // A problem details response, which occured during processing of a request
 type ProblemDetails struct {
-	// Human-readable explanation specific to this occurrence of the problem
-	Detail string `json:"detail"`
-
 	// A http status code describing a problem
 	StatusCode int `json:"status_code"`
+
+	// An URI for identifiyng problem type
+	Type string `json:"type"`
 
 	// A short, human-readable summary of the problem type
 	Title string `json:"title"`
 
-	// An URI for identifiyng problem type
-	Type string `json:"type"`
+	// Human-readable explanation specific to this occurrence of the problem
+	Detail string `json:"detail"`
 }
 
 // Request body for signing up new user
