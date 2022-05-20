@@ -13,14 +13,15 @@ type GoAuthServer struct{}
 func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 	connection, err := db.Connect("root", "goAuthDB", "users", "127.0.0.1:3306")
 	if err != nil {
-		respondWithError(w, UNEXPECTED_ERROR)
+		respondWithError(w, UnexpectedError)
 		return
 	}
 
 	var req api.SignupRequest
 	err = decodeJSONBody(w, r, &req)
 	if err != nil {
-		panic(err)
+		respondWithError(w, BadRequest(err.(malformedRequest)))
+		return
 	}
 
 	hashedPassword, err := encryptPassword(req.Password)
@@ -42,7 +43,6 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func respondWithError(w http.ResponseWriter, problem api.ProblemDetails) {
-
 	w.Header().Set(contentType, applicationJSON)
 	w.WriteHeader(problem.StatusCode)
 
