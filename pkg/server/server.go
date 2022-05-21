@@ -33,10 +33,8 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = dbCon.SaveUser(newUser)
-
 	if err != nil {
-		// TODO user with this email, username already exists
-		respondWithError(w, UnexpectedErrorProblem)
+		respondWithError(w, SQLProblem(err))
 		return
 	}
 }
