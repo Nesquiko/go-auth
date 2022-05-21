@@ -22,7 +22,7 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 
 	hashedPassword, err := encryptPassword(req.Password)
 	if err != nil {
-		respondWithError(w, UnexpectedError)
+		respondWithError(w, UnexpectedErrorProblem)
 		return
 	}
 
@@ -33,8 +33,10 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = dbCon.SaveUser(newUser)
+
 	if err != nil {
-		respondWithError(w, UnexpectedError)
+		// TODO user with this email, username already exists
+		respondWithError(w, UnexpectedErrorProblem)
 		return
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/Nesquiko/go-auth/pkg/api"
 )
 
-var UnexpectedError = api.ProblemDetails{
+var UnexpectedErrorProblem = api.ProblemDetails{
 	StatusCode: http.StatusInternalServerError,
 	Type:       "unexpected.error",
 	Title:      "Unexpected error occured",
