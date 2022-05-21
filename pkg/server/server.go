@@ -11,14 +11,10 @@ import (
 type GoAuthServer struct{}
 
 func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
-	connection, err := db.Connect("root", "goAuthDB", "users", "127.0.0.1:3306")
-	if err != nil {
-		respondWithError(w, UnexpectedError)
-		return
-	}
+	dbCon := db.DBConnection
 
 	var req api.SignupRequest
-	err = decodeJSONBody(w, r, &req)
+	err := decodeJSONBody(w, r, &req)
 	if err != nil {
 		respondWithError(w, BadRequest(err.(malformedRequest)))
 		return
@@ -26,7 +22,8 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 
 	hashedPassword, err := encryptPassword(req.Password)
 	if err != nil {
-		panic(err)
+		respondWithError(w, UnexpectedError)
+		return
 	}
 
 	newUser := &db.UserModel{
@@ -35,7 +32,11 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 		PasswordHash: hashedPassword,
 	}
 
-	connection.SaveUser(newUser)
+	err = dbCon.SaveUser(newUser)
+	if err != nil {
+		respondWithError(w, UnexpectedError)
+		return
+	}
 }
 
 func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
