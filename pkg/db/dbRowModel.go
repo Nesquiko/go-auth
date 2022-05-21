@@ -6,14 +6,14 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserEntity struct {
+type UserDBEntity struct {
 	Uuid         uuid.UUID
 	Username     string
 	Email        string
 	PasswordHash string
 }
 
-func (u UserEntity) String() string {
+func (u UserDBEntity) String() string {
 	return fmt.Sprintf("username: %s | email: %s | uuid: %s",
 		u.Username,
 		u.Email,
@@ -27,7 +27,7 @@ type UserModel struct {
 }
 
 func (u UserModel) String() string {
-	return fmt.Sprintf("username: %s | email: %s ",
+	return fmt.Sprintf("username: %s | email: %s",
 		u.Username,
 		u.Email)
 }

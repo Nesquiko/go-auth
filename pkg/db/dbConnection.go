@@ -6,22 +6,36 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
-type Connection struct {
+type connection struct {
 	*sql.DB
 }
 
-func Connect(user, passwd, dbname, addr string) (*Connection, error) {
-	var db *sql.DB
-	cfg := mysql.Config{
+var DBConnection *connection = nil
+
+func ConnectDB(driver, dsn string) error {
+	var err error
+
+	if DBConnection == nil {
+		DBConnection, err = connect(driver, dsn)
+	}
+
+	return err
+}
+
+func MySQLDSNConfig(user, passwd, addr, dbname string) *mysql.Config {
+	return &mysql.Config{
 		User:   user,
 		Passwd: passwd,
 		Net:    "tcp",
 		Addr:   addr,
 		DBName: dbname,
 	}
+}
 
-	var err error
-	db, err = sql.Open("mysql", cfg.FormatDSN())
+func connect(driver, dsn string) (*connection, error) {
+	var db *sql.DB
+
+	db, err := sql.Open(driver, dsn)
 
 	if err != nil {
 		return nil, err
@@ -32,5 +46,5 @@ func Connect(user, passwd, dbname, addr string) (*Connection, error) {
 		return nil, pingErr
 	}
 
-	return &Connection{db}, nil
+	return &connection{db}, nil
 }
