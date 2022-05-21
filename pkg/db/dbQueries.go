@@ -26,8 +26,9 @@ func (db connection) SaveUser(user *UserModel) error {
 		user.Email,
 		user.PasswordHash,
 	)
+
 	if err != nil {
-		return fmt.Errorf("saveUser %s: %v", user.Username, err)
+		return err
 	}
 
 	return nil
