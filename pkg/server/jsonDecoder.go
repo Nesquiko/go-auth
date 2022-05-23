@@ -15,7 +15,7 @@ const (
 	contentType     = "Content-Type"
 	applicationJSON = "application/json"
 
-	maxSize = 1048576
+	maxSize = 1024
 )
 
 type malformedRequest struct {
@@ -76,7 +76,7 @@ func decodeJSONBody[T any](w http.ResponseWriter, r *http.Request, dest T) error
 			return malformedRequest{status: http.StatusBadRequest, msg: responseMsg}
 
 		case err.Error() == "http: request body too large":
-			responseMsg := "Request body must not be larger than 1MB"
+			responseMsg := fmt.Sprintf("Request body must not be larger than %dB", maxSize)
 			return malformedRequest{status: http.StatusRequestEntityTooLarge, msg: responseMsg}
 
 		}
