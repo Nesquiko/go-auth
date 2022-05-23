@@ -14,9 +14,9 @@ import (
 const (
 	contentType     = "Content-Type"
 	applicationJSON = "application/json"
-)
 
-var maxSize = 1024
+	maxSize = 1024
+)
 
 type malformedRequest struct {
 	status int
@@ -34,7 +34,7 @@ func decodeJSONBody[T any](w http.ResponseWriter, r *http.Request, dest T) error
 		return malformedRequest{status: http.StatusUnsupportedMediaType, msg: responseMsg}
 	}
 
-	r.Body = http.MaxBytesReader(w, r.Body, int64(maxSize))
+	r.Body = http.MaxBytesReader(w, r.Body, maxSize)
 
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
