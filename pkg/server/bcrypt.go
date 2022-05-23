@@ -13,6 +13,7 @@ func encryptPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-// Comparing the password with the hash
-// err = bcrypt.CompareHashAndPassword(hashedPassword, password)
-// fmt.Println(err) // nil means it is a match
+func compareHashAndPassword(hash, password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
