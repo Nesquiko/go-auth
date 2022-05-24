@@ -1,20 +1,12 @@
 package db
 
-import (
-	"database/sql"
-	"fmt"
-)
-
 func (db connection) UserByUsername(username string) (*UserDBEntity, error) {
 	var user UserDBEntity
 
 	row := db.QueryRow("SELECT * FROM users WHERE username = ?", username)
 
 	if err := row.Scan(&user.Uuid, &user.Username, &user.Email, &user.PasswordHash); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user by %s: %v", username, err)
-		}
-		return nil, fmt.Errorf("user by %s: %v", username, err)
+		return nil, err
 	}
 	return &user, nil
 }
