@@ -12,7 +12,6 @@ import (
 )
 
 func StartServer() {
-	fmt.Println(db.MySQLDSNConfig("root", "goAuthDB", "127.0.0.1:3306", "users").FormatDSN())
 	fmt.Print("Connecting to Database...")
 	err := db.ConnectDB(
 		"mysql",
