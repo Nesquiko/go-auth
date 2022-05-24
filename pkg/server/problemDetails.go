@@ -26,7 +26,7 @@ func BadRequest(err malformedRequest) api.ProblemDetails {
 	}
 }
 
-func SQLProblem(err error) api.ProblemDetails {
+func MySQLProblem(err error) api.ProblemDetails {
 	if mysqlErr, ok := err.(*mysql.MySQLError); ok {
 		var statusCode int
 		var problemType, title, detail string
