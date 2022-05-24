@@ -34,12 +34,31 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 
 	err = dbCon.SaveUser(newUser)
 	if err != nil {
-		respondWithError(w, SQLProblem(err))
+		respondWithError(w, MySQLProblem(err))
 		return
 	}
 }
 
 func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
+	dbCon := db.DBConnection
+
+	var req api.LoginRequest
+	err := decodeJSONBody(w, r, &req)
+	if err != nil {
+		respondWithError(w, BadRequest(err.(malformedRequest)))
+		return
+	}
+
+	user, err := dbCon.UserByUsername(req.Username)
+	if err != nil {
+		panic(err)
+	}
+
+	if !hashAndPasswordMatch(user.PasswordHash, req.Password) {
+		panic(err)
+	}
+
+	// generate jwt and send it
 
 }
 
