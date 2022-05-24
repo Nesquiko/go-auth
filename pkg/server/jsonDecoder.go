@@ -15,7 +15,7 @@ const (
 	contentType     = "Content-Type"
 	applicationJSON = "application/json"
 
-	maxSize = 1024
+	maxSize = 128
 )
 
 type malformedRequest struct {
