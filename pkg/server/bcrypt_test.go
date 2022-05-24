@@ -18,7 +18,7 @@ func Test_compareHashAndPasswordValid(t *testing.T) {
 	passwd := "123"
 	hash1, _ := encryptPassword(passwd)
 
-	isValid := compareHashAndPassword(hash1, passwd)
+	isValid := hashAndPasswordMatch(hash1, passwd)
 	if !isValid {
 		t.Fatalf("Comparison failed, but expected not to")
 	}
@@ -29,7 +29,7 @@ func Test_compareHashAndPasswordInvalid(t *testing.T) {
 	hash1, _ := encryptPassword(passwd)
 	passwd2 := "invalid"
 
-	isValid := compareHashAndPassword(hash1, passwd2)
+	isValid := hashAndPasswordMatch(hash1, passwd2)
 	if isValid {
 		t.Fatalf("Comparison succeded, but expected not to")
 	}
