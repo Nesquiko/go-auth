@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,15 +17,8 @@ type testJSONStruct struct {
 	FieldInt    int    `json:"FieldInt"    validate:"required"`
 }
 
-var js testJSONStruct
-
-func TestMain(m *testing.M) {
-	js = testJSONStruct{}
-	code := m.Run()
-	os.Exit(code)
-}
-
 func Test_decodeJSONBodyValidJSONBody(t *testing.T) {
+	var js testJSONStruct
 	fieldString, fieldInt := "value", 123
 	reqBody := testJSONStruct{fieldString, fieldInt}
 	reqBodyJSON, _ := json.Marshal(reqBody)
@@ -49,6 +41,7 @@ func Test_decodeJSONBodyValidJSONBody(t *testing.T) {
 }
 
 func Test_decodeJSONBodyNoContentTypeHeader(t *testing.T) {
+	var js testJSONStruct
 	reqBody := testJSONStruct{FieldString: "value", FieldInt: 123}
 	reqBodyJSON, _ := json.Marshal(reqBody)
 
@@ -76,6 +69,7 @@ func Test_decodeJSONBodyNoContentTypeHeader(t *testing.T) {
 }
 
 func Test_decodeJSONBodyInvalidContentTypeHeader(t *testing.T) {
+	var js testJSONStruct
 	reqBody := testJSONStruct{FieldString: "value", FieldInt: 123}
 	reqBodyJSON, _ := json.Marshal(reqBody)
 
@@ -103,6 +97,7 @@ func Test_decodeJSONBodyInvalidContentTypeHeader(t *testing.T) {
 }
 
 func Test_decodeJSONBodyBadlyFormedJSONBodyAtPosition(t *testing.T) {
+	var js testJSONStruct
 	fieldString, fieldInt := "value", 123
 	reqBody := testJSONStruct{fieldString, fieldInt}
 	reqBodyJSON, _ := json.Marshal(reqBody)
@@ -142,6 +137,7 @@ func Test_decodeJSONBodyBadlyFormedJSONBodyAtPosition(t *testing.T) {
 }
 
 func Test_decodeJSONBodyBadlyFormedJSONBody(t *testing.T) {
+	var js testJSONStruct
 	fieldString, fieldInt := "value", 123
 	reqBody := testJSONStruct{fieldString, fieldInt}
 	reqBodyJSON, _ := json.Marshal(reqBody)
@@ -175,12 +171,12 @@ func Test_decodeJSONBodyBadlyFormedJSONBody(t *testing.T) {
 }
 
 func Test_decodeJSONBodyInvalidValueForField(t *testing.T) {
+	var js testJSONStruct
 	fieldString, fieldInt := "value", 123
 	reqBody := testJSONStruct{fieldString, fieldInt}
 	reqBodyJSON, _ := json.Marshal(reqBody)
 
 	badlyFormedJSON := strings.Replace(string(reqBodyJSON), "\"value\"", "123", 1)
-	fmt.Println(badlyFormedJSON)
 
 	wantCode := http.StatusBadRequest
 	wantField := "FieldString"
@@ -197,7 +193,6 @@ func Test_decodeJSONBodyInvalidValueForField(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	err := decodeJSONBody(w, req, &js)
-	fmt.Println(err.Error())
 
 	if err == nil {
 		t.Fatal("Error was nil")
@@ -217,6 +212,7 @@ func Test_decodeJSONBodyInvalidValueForField(t *testing.T) {
 }
 
 func Test_decodeJSONBodyUnknownField(t *testing.T) {
+	var js testJSONStruct
 	fieldString, fieldInt := "value", 123
 	fieldUnknown := "unknown"
 
@@ -257,6 +253,7 @@ func Test_decodeJSONBodyUnknownField(t *testing.T) {
 }
 
 func Test_decodeJSONBodyEmptyBody(t *testing.T) {
+	var js testJSONStruct
 	req, _ := http.NewRequest("", "", strings.NewReader(""))
 	req.Header.Add(contentType, applicationJSON)
 	w := httptest.NewRecorder()
@@ -284,7 +281,11 @@ func Test_decodeJSONBodyEmptyBody(t *testing.T) {
 }
 
 func Test_decodeJSONBodyTooLargeBody(t *testing.T) {
-	fieldString, fieldInt := "value", 123
+	var js testJSONStruct
+	fieldString :=
+		"toooooooooBiiiiiiiiiiggggggggggggggOooooooooooffffffffAaaaaaaaVaaaaluuuuuuueeeeee"
+	fieldInt := 1234567891234567891
+
 	reqBody := testJSONStruct{fieldString, fieldInt}
 	reqBodyJSON, _ := json.Marshal(reqBody)
 
@@ -315,6 +316,7 @@ func Test_decodeJSONBodyTooLargeBody(t *testing.T) {
 }
 
 func Test_decodeJSONBodyMoreJSONs(t *testing.T) {
+	var js testJSONStruct
 	fieldString, fieldInt := "value", 123
 	reqBody := testJSONStruct{fieldString, fieldInt}
 	reqBodyJSON, _ := json.Marshal(reqBody)
@@ -348,6 +350,7 @@ func Test_decodeJSONBodyMoreJSONs(t *testing.T) {
 }
 
 func Test_decodeJSONBodyMissingField(t *testing.T) {
+	var js testJSONStruct
 	fieldString, fieldInt := "value", 123
 	reqBody := testJSONStruct{fieldString, fieldInt}
 	reqBodyJSON, _ := json.Marshal(reqBody)
