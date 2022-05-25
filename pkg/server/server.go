@@ -6,6 +6,7 @@ import (
 
 	"github.com/Nesquiko/go-auth/pkg/api"
 	"github.com/Nesquiko/go-auth/pkg/db"
+	"github.com/Nesquiko/go-auth/pkg/security"
 )
 
 type GoAuthServer struct{}
@@ -58,8 +59,21 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	// generate jwt and send it
+	jwt, err := security.GenerateJWT(req.Username)
+	if err != nil {
+		panic(err)
 
+	}
+
+	response := api.LoginResponse{AccessToken: jwt}
+	respondWithSuccess(w, response)
+}
+
+func respondWithSuccess[T any](w http.ResponseWriter, response T) {
+	w.Header().Set(contentType, applicationJSON)
+	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(response)
 }
 
 func respondWithError(w http.ResponseWriter, problem api.ProblemDetails) {
