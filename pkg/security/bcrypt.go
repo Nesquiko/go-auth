@@ -1,10 +1,10 @@
-package server
+package security
 
 import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func encryptPassword(password string) (string, error) {
+func EncryptPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
@@ -13,7 +13,7 @@ func encryptPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-func hashAndPasswordMatch(hash, password string) bool {
+func HashAndPasswordMatch(hash, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }

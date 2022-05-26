@@ -21,7 +21,7 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashedPassword, err := encryptPassword(req.Password)
+	hashedPassword, err := security.EncryptPassword(req.Password)
 	if err != nil {
 		respondWithError(w, UnexpectedErrorProblem)
 		return
@@ -55,7 +55,7 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	if !hashAndPasswordMatch(user.PasswordHash, req.Password) {
+	if !security.HashAndPasswordMatch(user.PasswordHash, req.Password) {
 		panic(err)
 	}
 
