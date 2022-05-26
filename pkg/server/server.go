@@ -61,7 +61,7 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 	var req api.LoginRequest
 	err := decodeJSONBody(w, r, &req)
 	if err != nil {
-		respondWithError(w, UnexpectedErrorProblem)
+		respondWithError(w, BadRequest(err))
 		return
 	}
 
