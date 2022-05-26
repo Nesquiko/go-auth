@@ -1,6 +1,8 @@
 package server
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -17,35 +19,58 @@ var UnexpectedErrorProblem = api.ProblemDetails{
 	Detail:     "An unexpected error occured during processing your request",
 }
 
-func BadRequest(err malformedRequest) api.ProblemDetails {
-	return api.ProblemDetails{
-		StatusCode: err.status,
-		Type:       "bad.request",
-		Title:      "Bad request",
-		Detail:     err.msg,
-	}
+var InvalidCredentials = api.ProblemDetails{
+	StatusCode: http.StatusUnauthorized,
+	Type:       "credentials.invalid",
+	Title:      "Invalid credentials",
+	Detail:     "Submitted credentials are invalid",
 }
 
-func MySQLProblem(err error) api.ProblemDetails {
+func GetProblemDetails(err error) (problem api.ProblemDetails) {
+
+	problem = UnexpectedErrorProblem
 	if mysqlErr, ok := err.(*mysql.MySQLError); ok {
-		var statusCode int
-		var problemType, title, detail string
+		problem = mySQLProblem(*mysqlErr)
+	} else if errors.Is(err, sql.ErrNoRows) {
+		problem = sqlNoRows()
+	}
 
-		switch mysqlErr.Number {
-		case 1062:
-			statusCode = http.StatusConflict
-			problemType, title, detail = sqlDuplicateEntry(*mysqlErr)
-		}
+	return problem
+}
 
+func BadRequest(err error) api.ProblemDetails {
+	if malformedErr, ok := err.(malformedRequest); ok {
 		return api.ProblemDetails{
-			StatusCode: statusCode,
-			Type:       problemType,
-			Title:      title,
-			Detail:     detail,
+			StatusCode: malformedErr.status,
+			Type:       "bad.request",
+			Title:      "Bad request",
+			Detail:     malformedErr.msg,
 		}
 	}
 
 	return UnexpectedErrorProblem
+}
+
+func mySQLProblem(err mysql.MySQLError) api.ProblemDetails {
+
+	var statusCode int
+	var problemType, title, detail string
+
+	switch err.Number {
+	case 1062:
+		statusCode = http.StatusConflict
+		problemType, title, detail = sqlDuplicateEntry(err)
+
+	default:
+		return UnexpectedErrorProblem
+	}
+
+	return api.ProblemDetails{
+		StatusCode: statusCode,
+		Type:       problemType,
+		Title:      title,
+		Detail:     detail,
+	}
 }
 
 func sqlDuplicateEntry(err mysql.MySQLError) (problemType, title, detail string) {
@@ -70,4 +95,17 @@ func sqlDuplicateEntry(err mysql.MySQLError) (problemType, title, detail string)
 	}
 
 	return
+}
+
+func sqlNoRows() api.ProblemDetails {
+	problemType := "username.not_found"
+	title := "Entered username was not found"
+	detail := "Username you eneterd was not found"
+
+	return api.ProblemDetails{
+		StatusCode: http.StatusUnauthorized,
+		Type:       problemType,
+		Title:      title,
+		Detail:     detail,
+	}
 }
