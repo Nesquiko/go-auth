@@ -12,12 +12,12 @@ import (
 type GoAuthServer struct{}
 
 func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
-	dbCon := db.DBConnection
+	dbConn := db.DBConnection
 
 	var req api.SignupRequest
 	err := decodeJSONBody(w, r, &req)
 	if err != nil {
-		respondWithError(w, BadRequest(err.(malformedRequest)))
+		respondWithError(w, BadRequest(err))
 		return
 	}
 
@@ -33,9 +33,9 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 		PasswordHash: hashedPassword,
 	}
 
-	err = dbCon.SaveUser(newUser)
+	err = dbConn.SaveUser(newUser)
 	if err != nil {
-		respondWithError(w, MySQLProblem(err))
+		respondWithError(w, GetProblemDetails(err))
 		return
 	}
 }
@@ -46,23 +46,25 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 	var req api.LoginRequest
 	err := decodeJSONBody(w, r, &req)
 	if err != nil {
-		respondWithError(w, BadRequest(err.(malformedRequest)))
+		respondWithError(w, UnexpectedErrorProblem)
 		return
 	}
 
 	user, err := dbCon.UserByUsername(req.Username)
 	if err != nil {
-		panic(err)
+		respondWithError(w, GetProblemDetails(err))
+		return
 	}
 
 	if !security.HashAndPasswordMatch(user.PasswordHash, req.Password) {
-		panic(err)
+		respondWithError(w, InvalidCredentials)
+		return
 	}
 
 	jwt, err := security.GenerateJWT(req.Username)
 	if err != nil {
-		panic(err)
-
+		respondWithError(w, UnexpectedErrorProblem)
+		return
 	}
 
 	response := api.LoginResponse{AccessToken: jwt}
