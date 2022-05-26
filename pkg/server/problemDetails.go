@@ -12,6 +12,8 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
+// UnexpectedErrorProblem is generic problem details response used when an
+// error, about which the user doesn't have to know about, occured.
 var UnexpectedErrorProblem = api.ProblemDetails{
 	StatusCode: http.StatusInternalServerError,
 	Type:       "unexpected.error",
@@ -19,6 +21,8 @@ var UnexpectedErrorProblem = api.ProblemDetails{
 	Detail:     "An unexpected error occured during processing your request",
 }
 
+// InvalidCredentials is a problem details response used when a user enters
+// invalid login credentials.
 var InvalidCredentials = api.ProblemDetails{
 	StatusCode: http.StatusUnauthorized,
 	Type:       "credentials.invalid",
@@ -26,6 +30,8 @@ var InvalidCredentials = api.ProblemDetails{
 	Detail:     "Submitted credentials are invalid",
 }
 
+// GetProblemDetails is used when a error needs to be identified and user needs
+// a specific problem details response corresponding to the identified error.
 func GetProblemDetails(err error) (problem api.ProblemDetails) {
 
 	problem = UnexpectedErrorProblem
@@ -38,6 +44,9 @@ func GetProblemDetails(err error) (problem api.ProblemDetails) {
 	return problem
 }
 
+// BadRequest is used when user sends a invalid/malformed JSON request. Details
+// are extracted from the error param, if the error param can't be casted as
+// malformedRequest, generic UnexpectedErrorProblem is returned.
 func BadRequest(err error) api.ProblemDetails {
 	if malformedErr, ok := err.(malformedRequest); ok {
 		return api.ProblemDetails{
@@ -51,6 +60,9 @@ func BadRequest(err error) api.ProblemDetails {
 	return UnexpectedErrorProblem
 }
 
+// mySQLProblem function returns specific problem details accourding to the
+// error number in the MySQLError. If the error has unknown number, generic
+// UnexpectedErrorProblem is returned.
 func mySQLProblem(err mysql.MySQLError) api.ProblemDetails {
 
 	var statusCode int
@@ -73,6 +85,9 @@ func mySQLProblem(err mysql.MySQLError) api.ProblemDetails {
 	}
 }
 
+// sqlDuplicateEntry is a util function for identifying which submitted entry is
+// a duplicate according to the err. Then it returns corresponding type, title and
+// detail for creation of a problem details response.
 func sqlDuplicateEntry(err mysql.MySQLError) (problemType, title, detail string) {
 	re := regexp.MustCompile(`'(.{3,30}?)'`)
 	entry := re.FindString(err.Message)
@@ -97,6 +112,8 @@ func sqlDuplicateEntry(err mysql.MySQLError) (problemType, title, detail string)
 	return
 }
 
+// sqlNoRows is a util function for creating a problem details response when a
+// submitted username was not found in database.
 func sqlNoRows() api.ProblemDetails {
 	problemType := "username.not_found"
 	title := "Entered username was not found"

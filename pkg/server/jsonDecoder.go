@@ -12,21 +12,31 @@ import (
 )
 
 const (
-	contentType     = "Content-Type"
+	// contentType is a const for a Content-Type header key.
+	contentType = "Content-Type"
+	// applicationJSON is a const for a Content-Type header application/json value.
 	applicationJSON = "application/json"
 
+	// maxSize is a maximal size, in Bytes, of a JSON reques body.
 	maxSize = 128
 )
 
+// malformedRequest represents a error caused by a malformed JSON request.
+// Status represents what http status code should be returned to user, and
+// message is a description of what was wrong with the JSON request.
 type malformedRequest struct {
 	status int
 	msg    string
 }
 
+// Error returns a string representation of malformedRequest error.
 func (mr malformedRequest) Error() string {
 	return mr.msg
 }
 
+// decodeJSONBody tries to decodes request body to the dest param. If something
+// is not valid, a malformedResult error is returned with details about the
+// error that occured.
 func decodeJSONBody[T any](w http.ResponseWriter, r *http.Request, dest T) error {
 
 	if ct := r.Header.Get(contentType); ct != applicationJSON {

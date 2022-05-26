@@ -1,3 +1,4 @@
+// Package app is provides functions for starting the Go-Auth application.
 package app
 
 import (
@@ -11,6 +12,10 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// StartServer starts the whole Go-Auth application. Firstly if tries to connect
+// to a MySQL database, if it fails, the app won't start. Then creates new
+// router and configures it with middleware and handler. The application listens
+// on port 8080.
 func StartServer() {
 	fmt.Print("Connecting to Database...")
 	err := db.ConnectDB(

@@ -1,3 +1,5 @@
+// Package db provides functions for interacting with a database. Only MySQL
+// database is supported for now.
 package db
 
 import (
@@ -6,12 +8,17 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
+// connection struct with embedded sql.DB struct serving as a layer between
+// application logic and database logic.
 type connection struct {
 	*sql.DB
 }
 
+// DBConnectino is a global connection to a database, through which application
+// logic interacts with database.
 var DBConnection *connection = nil
 
+// ConnectDB establishes the global connection to a database.
 func ConnectDB(driver, dsn string) error {
 	var err error
 
@@ -22,6 +29,8 @@ func ConnectDB(driver, dsn string) error {
 	return err
 }
 
+// MySQLDSNConfig is a simple util function for creating a mysql.Config with
+// custom connection options.
 func MySQLDSNConfig(user, passwd, addr, dbname string) *mysql.Config {
 	return &mysql.Config{
 		User:   user,
@@ -32,6 +41,10 @@ func MySQLDSNConfig(user, passwd, addr, dbname string) *mysql.Config {
 	}
 }
 
+// connect tries to establish a connection to a database. The param driver
+// specifies the type of the database and dsn is the configuration used to
+// connect to the database. After initializing the connection to the database,
+// it is pinged to see if the connection was established.
 func connect(driver, dsn string) (*connection, error) {
 	var db *sql.DB
 
