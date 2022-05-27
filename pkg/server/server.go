@@ -15,13 +15,16 @@ import (
 // API endpoints.
 type GoAuthServer struct{}
 
+// dbConn is a layer between application logic and already established database
+// connection.
+var dbConn db.DBConnection = db.DBConn
+
 // Signup handles when a user sends a request to the /signup endpoint for signing
 // up. After successfully decoding JSON request, new user entry is saved into the
 // database.
 // Specific endpoint details can be found in ./openapi folder in the
 // OpenAPI specification.
 func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
-	dbConn := db.DBConn
 
 	var req api.SignupRequest
 	err := validateJSONRequest(w, r, &req)
@@ -56,7 +59,6 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 // Specific endpoint details can be found in ./openapi folder in the
 // OpenAPI specification.
 func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
-	dbCon := db.DBConn
 
 	var req api.LoginRequest
 	err := validateJSONRequest(w, r, &req)
@@ -65,7 +67,7 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := dbCon.UserByUsername(req.Username)
+	user, err := dbConn.UserByUsername(req.Username)
 	if err != nil {
 		respondWithError(w, GetProblemDetails(err))
 		return
