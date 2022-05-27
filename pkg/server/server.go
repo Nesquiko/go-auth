@@ -24,7 +24,7 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 	dbConn := db.DBConnection
 
 	var req api.SignupRequest
-	err := decodeJSONBody(w, r, &req)
+	err := validateJSONRequest(w, r, &req)
 	if err != nil {
 		respondWithError(w, BadRequest(err))
 		return
@@ -59,7 +59,7 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 	dbCon := db.DBConnection
 
 	var req api.LoginRequest
-	err := decodeJSONBody(w, r, &req)
+	err := validateJSONRequest(w, r, &req)
 	if err != nil {
 		respondWithError(w, BadRequest(err))
 		return

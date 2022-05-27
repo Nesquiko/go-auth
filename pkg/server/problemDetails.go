@@ -48,7 +48,7 @@ func GetProblemDetails(err error) (problem api.ProblemDetails) {
 // are extracted from the error param, if the error param can't be casted as
 // malformedRequest, generic UnexpectedErrorProblem is returned.
 func BadRequest(err error) api.ProblemDetails {
-	if malformedErr, ok := err.(malformedRequest); ok {
+	if malformedErr, ok := err.(malformedRequestErr); ok {
 		return api.ProblemDetails{
 			StatusCode: malformedErr.status,
 			Type:       "bad.request",

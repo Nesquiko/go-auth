@@ -27,7 +27,7 @@ func Test_decodeJSONBodyValidJSONBody(t *testing.T) {
 	req.Header.Add(contentType, applicationJSON)
 	w := httptest.NewRecorder()
 
-	err := decodeJSONBody(w, req, &js)
+	err := validateJSONRequest(w, req, &js)
 
 	if err != nil {
 		t.Fatalf("Error that occured: %s", err.Error())
@@ -51,12 +51,12 @@ func Test_decodeJSONBodyNoContentTypeHeader(t *testing.T) {
 	wantCode := http.StatusUnsupportedMediaType
 	wantMsg := "Content-Type header is not application/json"
 
-	err := decodeJSONBody(w, req, &js)
+	err := validateJSONRequest(w, req, &js)
 	if err == nil {
 		t.Fatal("Expected error to occur, but it didnt")
 	}
 
-	mErr, ok := err.(malformedRequest)
+	mErr, ok := err.(malformedRequestErr)
 	if !ok {
 		t.Fatal("Error is not malformedRequest, but it should")
 	}
@@ -80,11 +80,11 @@ func Test_decodeJSONBodyInvalidContentTypeHeader(t *testing.T) {
 	wantCode := http.StatusUnsupportedMediaType
 	wantMsg := "Content-Type header is not application/json"
 
-	err := decodeJSONBody(w, req, &js)
+	err := validateJSONRequest(w, req, &js)
 	if err == nil {
 		t.Fatal("Expected error to occur, but it didnt")
 	}
-	mErr, ok := err.(malformedRequest)
+	mErr, ok := err.(malformedRequestErr)
 	if !ok {
 		t.Fatal("Error is not malformedRequest, but it should")
 	}
@@ -113,12 +113,12 @@ func Test_decodeJSONBodyBadlyFormedJSONBodyAtPosition(t *testing.T) {
 	req.Header.Add(contentType, applicationJSON)
 	w := httptest.NewRecorder()
 
-	err := decodeJSONBody(w, req, &js)
+	err := validateJSONRequest(w, req, &js)
 	if err == nil {
 		t.Fatal("Error was nil")
 	}
 
-	mErr, ok := err.(malformedRequest)
+	mErr, ok := err.(malformedRequestErr)
 	if !ok {
 		t.Fatal("Error is not malformedRequest, but it should")
 	}
@@ -152,12 +152,12 @@ func Test_decodeJSONBodyBadlyFormedJSONBody(t *testing.T) {
 	req.Header.Add(contentType, applicationJSON)
 	w := httptest.NewRecorder()
 
-	err := decodeJSONBody(w, req, &js)
+	err := validateJSONRequest(w, req, &js)
 	if err == nil {
 		t.Fatal("Error was nil")
 	}
 
-	mErr, ok := err.(malformedRequest)
+	mErr, ok := err.(malformedRequestErr)
 	if !ok {
 		t.Fatal("Error is not malformedRequest, but it should")
 	}
@@ -192,13 +192,13 @@ func Test_decodeJSONBodyInvalidValueForField(t *testing.T) {
 	req.Header.Add(contentType, applicationJSON)
 	w := httptest.NewRecorder()
 
-	err := decodeJSONBody(w, req, &js)
+	err := validateJSONRequest(w, req, &js)
 
 	if err == nil {
 		t.Fatal("Error was nil")
 	}
 
-	mErr, ok := err.(malformedRequest)
+	mErr, ok := err.(malformedRequestErr)
 	if !ok {
 		t.Fatal("Error is not malformedRequest, but it should")
 	}
@@ -233,13 +233,13 @@ func Test_decodeJSONBodyUnknownField(t *testing.T) {
 	req.Header.Add(contentType, applicationJSON)
 	w := httptest.NewRecorder()
 
-	err := decodeJSONBody(w, req, &js)
+	err := validateJSONRequest(w, req, &js)
 
 	if err == nil {
 		t.Fatal("Error was nil")
 	}
 
-	mErr, ok := err.(malformedRequest)
+	mErr, ok := err.(malformedRequestErr)
 	if !ok {
 		t.Fatal("Error is not malformedRequest, but it should")
 	}
@@ -261,13 +261,13 @@ func Test_decodeJSONBodyEmptyBody(t *testing.T) {
 	wantCode := http.StatusBadRequest
 	wantMsg := "Request body must not be empty"
 
-	err := decodeJSONBody(w, req, &js)
+	err := validateJSONRequest(w, req, &js)
 
 	if err == nil {
 		t.Fatal("Error was nil")
 	}
 
-	mErr, ok := err.(malformedRequest)
+	mErr, ok := err.(malformedRequestErr)
 	if !ok {
 		t.Fatal("Error is not malformedRequest, but it should")
 	}
@@ -296,13 +296,13 @@ func Test_decodeJSONBodyTooLargeBody(t *testing.T) {
 	wantCode := http.StatusRequestEntityTooLarge
 	wantMsg := fmt.Sprintf("Request body must not be larger than %dB", maxSize)
 
-	err := decodeJSONBody(w, req, &js)
+	err := validateJSONRequest(w, req, &js)
 
 	if err == nil {
 		t.Fatal("Error was nil")
 	}
 
-	mErr, ok := err.(malformedRequest)
+	mErr, ok := err.(malformedRequestErr)
 	if !ok {
 		t.Fatal("Error is not malformedRequest, but it should")
 	}
@@ -330,13 +330,13 @@ func Test_decodeJSONBodyMoreJSONs(t *testing.T) {
 	wantCode := http.StatusBadRequest
 	wantMsg := "Request body must only contain a single JSON object"
 
-	err := decodeJSONBody(w, req, &js)
+	err := validateJSONRequest(w, req, &js)
 
 	if err == nil {
 		t.Fatal("Error was nil")
 	}
 
-	mErr, ok := err.(malformedRequest)
+	mErr, ok := err.(malformedRequestErr)
 	if !ok {
 		t.Fatal("Error is not malformedRequest, but it should")
 	}
@@ -364,13 +364,13 @@ func Test_decodeJSONBodyMissingField(t *testing.T) {
 	wantCode := http.StatusBadRequest
 	wantMsg := "Request body is not complete"
 
-	err := decodeJSONBody(w, req, &js)
+	err := validateJSONRequest(w, req, &js)
 
 	if err == nil {
 		t.Fatal("Error was nil")
 	}
 
-	mErr, ok := err.(malformedRequest)
+	mErr, ok := err.(malformedRequestErr)
 	if !ok {
 		t.Fatal("Error is not malformedRequest, but it should")
 	}
