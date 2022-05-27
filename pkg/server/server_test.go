@@ -241,7 +241,7 @@ func TestSignupEmailAlreadyExists(t *testing.T) {
 
 	reqBody := api.SignupRequest{
 		Email:    email,
-		Username: "Barz",
+		Username: "John",
 		Password: "foobarz",
 	}
 	var buf bytes.Buffer
