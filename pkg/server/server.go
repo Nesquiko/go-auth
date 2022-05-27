@@ -21,7 +21,7 @@ type GoAuthServer struct{}
 // Specific endpoint details can be found in ./openapi folder in the
 // OpenAPI specification.
 func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
-	dbConn := db.DBConnection
+	dbConn := db.DBConn
 
 	var req api.SignupRequest
 	err := validateJSONRequest(w, r, &req)
@@ -56,7 +56,7 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 // Specific endpoint details can be found in ./openapi folder in the
 // OpenAPI specification.
 func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
-	dbCon := db.DBConnection
+	dbCon := db.DBConn
 
 	var req api.LoginRequest
 	err := validateJSONRequest(w, r, &req)

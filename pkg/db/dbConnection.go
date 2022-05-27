@@ -8,22 +8,35 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
+// DBConnection represents a layer between the database and the application
+// logic.
+type DBConnection interface {
+
+	// UserByUsername returns a UserDBEntity from database specified by the username
+	// parameter. If the username doesn't exist, error is returned.
+	UserByUsername(username string) (*UserDBEntity, error)
+
+	// SaveUser saves the UserModel passed as parameter to a database.
+	SaveUser(user *UserModel) error
+}
+
 // connection struct with embedded sql.DB struct serving as a layer between
-// application logic and database logic.
+// application logic and database logic. Also this struct implements the
+// DBConnection interface.
 type connection struct {
 	*sql.DB
 }
 
 // DBConnectino is a global connection to a database, through which application
 // logic interacts with database.
-var DBConnection *connection = nil
+var DBConn DBConnection = nil
 
 // ConnectDB establishes the global connection to a database.
 func ConnectDB(driver, dsn string) error {
 	var err error
 
-	if DBConnection == nil {
-		DBConnection, err = connect(driver, dsn)
+	if DBConn == nil {
+		DBConn, err = connect(driver, dsn)
 	}
 
 	return err
@@ -45,7 +58,7 @@ func MySQLDSNConfig(user, passwd, addr, dbname string) *mysql.Config {
 // specifies the type of the database and dsn is the configuration used to
 // connect to the database. After initializing the connection to the database,
 // it is pinged to see if the connection was established.
-func connect(driver, dsn string) (*connection, error) {
+func connect(driver, dsn string) (DBConnection, error) {
 	var db *sql.DB
 
 	db, err := sql.Open(driver, dsn)

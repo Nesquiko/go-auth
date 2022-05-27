@@ -5,7 +5,7 @@ import (
 )
 
 func TestConnectDBIsNil(t *testing.T) {
-	if DBConnection != nil {
+	if DBConn != nil {
 		t.Error("Uninitialized connection to db is not nil")
 	}
 }
@@ -40,7 +40,7 @@ func TestConnectDBErrors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := ConnectDB(tt.args.driver, tt.args.dsn)
 
-			if DBConnection != nil {
+			if DBConn != nil {
 				t.Error(conFailMsg)
 			}
 			if err == nil {
