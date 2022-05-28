@@ -12,6 +12,12 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+const (
+	// applicationJSON is a const for a Content-Type header application/json
+	// value, which is only allowed content type.
+	applicationJSON = "application/json"
+)
+
 // StartServer starts the whole Go-Auth application. Firstly if tries to connect
 // to a MySQL database, if it fails, the app won't start. Then creates new
 // router and configures it with middleware and handler. The application listens

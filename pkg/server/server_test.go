@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/Nesquiko/go-auth/pkg/api"
+	"github.com/Nesquiko/go-auth/pkg/consts"
 	"github.com/Nesquiko/go-auth/pkg/db"
 	"github.com/Nesquiko/go-auth/pkg/db/mocks"
 	"github.com/go-chi/chi/v5"
@@ -100,7 +101,7 @@ func TestSignupBadRequest(t *testing.T) {
 
 	for _, tc := range testCases {
 		req := httptest.NewRequest("POST", "/signup", strings.NewReader(tc.reqString))
-		req.Header.Add(contentType, applicationJSON)
+		req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 		wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
 			"status_code", tc.wantCode,
@@ -176,7 +177,7 @@ func TestSignupValidRequest(t *testing.T) {
 	}
 
 	req := httptest.NewRequest("POST", "/signup", &buf)
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 	wantCode := http.StatusOK
 
@@ -208,7 +209,7 @@ func TestSignupUsernameAlreadyExists(t *testing.T) {
 	}
 
 	req := httptest.NewRequest("POST", "/signup", &buf)
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 	wantCode := http.StatusConflict
 	wantType := "username.already_exists"
@@ -252,7 +253,7 @@ func TestSignupEmailAlreadyExists(t *testing.T) {
 	}
 
 	req := httptest.NewRequest("POST", "/signup", &buf)
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 	wantCode := http.StatusConflict
 	wantType := "email.already_used"

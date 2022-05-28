@@ -12,11 +12,6 @@ import (
 )
 
 const (
-	// contentType is a const for a Content-Type header key.
-	contentType = "Content-Type"
-	// applicationJSON is a const for a Content-Type header application/json value.
-	applicationJSON = "application/json"
-
 	// maxSize is a maximal size, in Bytes, of a JSON reques body.
 	maxSize = 128
 )
