@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 	}
 	server = api.HandlerWithOptions(s, servOpts)
 
-	dbConn = mocks.DBConnectionMock{}
+	db.DBConn = mocks.DBConnectionMock{}
 
 	code := m.Run()
 
@@ -147,7 +147,7 @@ func TestSignupValidRequest(t *testing.T) {
 
 func TestSignupUsernameAlreadyExists(t *testing.T) {
 	username := "Barz"
-	dbConn.SaveUser(&db.UserModel{
+	db.DBConn.SaveUser(&db.UserModel{
 		Email:        "bar@foo.com",
 		Username:     username,
 		PasswordHash: "hash",
@@ -191,7 +191,7 @@ func TestSignupUsernameAlreadyExists(t *testing.T) {
 
 func TestSignupEmailAlreadyExists(t *testing.T) {
 	email := "bar@foo.com"
-	dbConn.SaveUser(&db.UserModel{
+	db.DBConn.SaveUser(&db.UserModel{
 		Email:        email,
 		Username:     "Bar",
 		PasswordHash: "hash",
