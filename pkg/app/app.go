@@ -9,6 +9,7 @@ import (
 	"github.com/Nesquiko/go-auth/pkg/db"
 	"github.com/Nesquiko/go-auth/pkg/middleware"
 	"github.com/Nesquiko/go-auth/pkg/server"
+	chiMiddleware "github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -40,6 +41,7 @@ func StartServer() {
 	r := chi.NewRouter()
 	middlewares := []api.MiddlewareFunc{
 		middleware.ContentTypeFilter,
+		chiMiddleware.Logger,
 	}
 
 	var server server.GoAuthServer
