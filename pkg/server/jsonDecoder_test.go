@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/Nesquiko/go-auth/pkg/consts"
 )
 
 type testJSONStruct struct {
@@ -37,62 +39,6 @@ func Test_decodeJSONBodyValidJSONBody(t *testing.T) {
 	}
 	if js.FieldInt != fieldInt {
 		t.Errorf("Expected int field to be %d, but was %d", fieldInt, js.FieldInt)
-	}
-}
-
-func Test_decodeJSONBodyNoContentTypeHeader(t *testing.T) {
-	var js testJSONStruct
-	reqBody := testJSONStruct{FieldString: "value", FieldInt: 123}
-	reqBodyJSON, _ := json.Marshal(reqBody)
-
-	req, _ := http.NewRequest("", "", bytes.NewReader(reqBodyJSON))
-	w := httptest.NewRecorder()
-
-	wantCode := http.StatusUnsupportedMediaType
-	wantMsg := "Content-Type header is not application/json"
-
-	err := validateJSONRequest(w, req, &js)
-	if err == nil {
-		t.Fatal("Expected error to occur, but it didnt")
-	}
-
-	mErr, ok := err.(malformedRequestErr)
-	if !ok {
-		t.Fatal("Error is not malformedRequest, but it should")
-	}
-	if mErr.status != wantCode {
-		t.Errorf("Wrong http status code, expected %d, but was %d", wantCode, mErr.status)
-	}
-	if mErr.msg != wantMsg {
-		t.Errorf("Wrong message, expected %s, but was %s", wantMsg, mErr.msg)
-	}
-}
-
-func Test_decodeJSONBodyInvalidContentTypeHeader(t *testing.T) {
-	var js testJSONStruct
-	reqBody := testJSONStruct{FieldString: "value", FieldInt: 123}
-	reqBodyJSON, _ := json.Marshal(reqBody)
-
-	req, _ := http.NewRequest("", "", bytes.NewReader(reqBodyJSON))
-	req.Header.Add(contentType, "text/plain")
-	w := httptest.NewRecorder()
-
-	wantCode := http.StatusUnsupportedMediaType
-	wantMsg := "Content-Type header is not application/json"
-
-	err := validateJSONRequest(w, req, &js)
-	if err == nil {
-		t.Fatal("Expected error to occur, but it didnt")
-	}
-	mErr, ok := err.(malformedRequestErr)
-	if !ok {
-		t.Fatal("Error is not malformedRequest, but it should")
-	}
-	if mErr.status != wantCode {
-		t.Errorf("Wrong http status code, expected %d, but was %d", wantCode, mErr.status)
-	}
-	if mErr.msg != wantMsg {
-		t.Errorf("Wrong message, expected %s, but was %s", wantMsg, mErr.msg)
 	}
 }
 

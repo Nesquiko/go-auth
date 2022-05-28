@@ -120,49 +120,6 @@ func TestSignupBadRequest(t *testing.T) {
 	}
 }
 
-func TestSignupContentTypeHeader(t *testing.T) {
-	testCases := []struct {
-		name          string
-		reqString     string
-		contentHeader string
-	}{
-		{"NoContentTypeHeader", "\"{}\"", ""},
-		{"WrongContentTypeHeader", "\"{}\"", "textPlain"},
-	}
-
-	for i, tc := range testCases {
-
-		var buf bytes.Buffer
-		err := json.NewEncoder(&buf).Encode(tc.reqString)
-		if err != nil {
-			t.Fatalf("Error in encoding of request in test case %d", i)
-		}
-
-		req := httptest.NewRequest("POST", "/signup", &buf)
-		req.Header.Add(contentType, tc.contentHeader)
-
-		wantCode := http.StatusUnsupportedMediaType
-		wantType := "bad.request"
-		wantTitle := "Bad request"
-		wantDetail := "Content-Type header is not application/json"
-
-		wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
-			"status_code", wantCode,
-			"type", wantType,
-			"title", wantTitle,
-			"detail", wantDetail)
-
-		res := executeRequest(req)
-
-		if res.Code != wantCode {
-			t.Errorf("Expected status code to be %d, but was %d", wantCode, res.Code)
-		}
-		if res.Body.String() != wantBody {
-			t.Errorf("Expected response body to be %s, but was %s", wantBody, res.Body)
-		}
-	}
-}
-
 func TestSignupValidRequest(t *testing.T) {
 	reqBody := api.SignupRequest{
 		Email:    "test@foo.com",
