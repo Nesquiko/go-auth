@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/Nesquiko/go-auth/pkg/consts"
 )
 
 type testJSONStruct struct {
@@ -24,10 +26,10 @@ func Test_decodeJSONBodyValidJSONBody(t *testing.T) {
 	reqBodyJSON, _ := json.Marshal(reqBody)
 
 	req, _ := http.NewRequest("", "", bytes.NewReader(reqBodyJSON))
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 	w := httptest.NewRecorder()
 
-	err := validateJSONRequest(w, req, &js)
+	err := validateJSONRequestBody(w, req, &js)
 
 	if err != nil {
 		t.Fatalf("Error that occured: %s", err.Error())
@@ -37,62 +39,6 @@ func Test_decodeJSONBodyValidJSONBody(t *testing.T) {
 	}
 	if js.FieldInt != fieldInt {
 		t.Errorf("Expected int field to be %d, but was %d", fieldInt, js.FieldInt)
-	}
-}
-
-func Test_decodeJSONBodyNoContentTypeHeader(t *testing.T) {
-	var js testJSONStruct
-	reqBody := testJSONStruct{FieldString: "value", FieldInt: 123}
-	reqBodyJSON, _ := json.Marshal(reqBody)
-
-	req, _ := http.NewRequest("", "", bytes.NewReader(reqBodyJSON))
-	w := httptest.NewRecorder()
-
-	wantCode := http.StatusUnsupportedMediaType
-	wantMsg := "Content-Type header is not application/json"
-
-	err := validateJSONRequest(w, req, &js)
-	if err == nil {
-		t.Fatal("Expected error to occur, but it didnt")
-	}
-
-	mErr, ok := err.(malformedRequestErr)
-	if !ok {
-		t.Fatal("Error is not malformedRequest, but it should")
-	}
-	if mErr.status != wantCode {
-		t.Errorf("Wrong http status code, expected %d, but was %d", wantCode, mErr.status)
-	}
-	if mErr.msg != wantMsg {
-		t.Errorf("Wrong message, expected %s, but was %s", wantMsg, mErr.msg)
-	}
-}
-
-func Test_decodeJSONBodyInvalidContentTypeHeader(t *testing.T) {
-	var js testJSONStruct
-	reqBody := testJSONStruct{FieldString: "value", FieldInt: 123}
-	reqBodyJSON, _ := json.Marshal(reqBody)
-
-	req, _ := http.NewRequest("", "", bytes.NewReader(reqBodyJSON))
-	req.Header.Add(contentType, "text/plain")
-	w := httptest.NewRecorder()
-
-	wantCode := http.StatusUnsupportedMediaType
-	wantMsg := "Content-Type header is not application/json"
-
-	err := validateJSONRequest(w, req, &js)
-	if err == nil {
-		t.Fatal("Expected error to occur, but it didnt")
-	}
-	mErr, ok := err.(malformedRequestErr)
-	if !ok {
-		t.Fatal("Error is not malformedRequest, but it should")
-	}
-	if mErr.status != wantCode {
-		t.Errorf("Wrong http status code, expected %d, but was %d", wantCode, mErr.status)
-	}
-	if mErr.msg != wantMsg {
-		t.Errorf("Wrong message, expected %s, but was %s", wantMsg, mErr.msg)
 	}
 }
 
@@ -110,10 +56,10 @@ func Test_decodeJSONBodyBadlyFormedJSONBodyAtPosition(t *testing.T) {
 	wantMsg := fmt.Sprintf("Request body contains badly-formed JSON (at position %d)", wantPos)
 
 	req, _ := http.NewRequest("", "", strings.NewReader(badlyFormedJSON))
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 	w := httptest.NewRecorder()
 
-	err := validateJSONRequest(w, req, &js)
+	err := validateJSONRequestBody(w, req, &js)
 	if err == nil {
 		t.Fatal("Error was nil")
 	}
@@ -149,10 +95,10 @@ func Test_decodeJSONBodyBadlyFormedJSONBody(t *testing.T) {
 	wantMsg := "Request body contains badly-formed JSON"
 
 	req, _ := http.NewRequest("", "", strings.NewReader(badlyFormedJSON))
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 	w := httptest.NewRecorder()
 
-	err := validateJSONRequest(w, req, &js)
+	err := validateJSONRequestBody(w, req, &js)
 	if err == nil {
 		t.Fatal("Error was nil")
 	}
@@ -189,10 +135,10 @@ func Test_decodeJSONBodyInvalidValueForField(t *testing.T) {
 	)
 
 	req, _ := http.NewRequest("", "", strings.NewReader(badlyFormedJSON))
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 	w := httptest.NewRecorder()
 
-	err := validateJSONRequest(w, req, &js)
+	err := validateJSONRequestBody(w, req, &js)
 
 	if err == nil {
 		t.Fatal("Error was nil")
@@ -230,10 +176,10 @@ func Test_decodeJSONBodyUnknownField(t *testing.T) {
 	wantMsg := "Request body contains unknown field \"fieldUnknown\""
 
 	req, _ := http.NewRequest("", "", strings.NewReader(withUnknownField))
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 	w := httptest.NewRecorder()
 
-	err := validateJSONRequest(w, req, &js)
+	err := validateJSONRequestBody(w, req, &js)
 
 	if err == nil {
 		t.Fatal("Error was nil")
@@ -255,13 +201,13 @@ func Test_decodeJSONBodyUnknownField(t *testing.T) {
 func Test_decodeJSONBodyEmptyBody(t *testing.T) {
 	var js testJSONStruct
 	req, _ := http.NewRequest("", "", strings.NewReader(""))
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 	w := httptest.NewRecorder()
 
 	wantCode := http.StatusBadRequest
 	wantMsg := "Request body must not be empty"
 
-	err := validateJSONRequest(w, req, &js)
+	err := validateJSONRequestBody(w, req, &js)
 
 	if err == nil {
 		t.Fatal("Error was nil")
@@ -290,13 +236,13 @@ func Test_decodeJSONBodyTooLargeBody(t *testing.T) {
 	reqBodyJSON, _ := json.Marshal(reqBody)
 
 	req, _ := http.NewRequest("", "", bytes.NewReader(reqBodyJSON))
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 	w := httptest.NewRecorder()
 
 	wantCode := http.StatusRequestEntityTooLarge
 	wantMsg := fmt.Sprintf("Request body must not be larger than %dB", maxSize)
 
-	err := validateJSONRequest(w, req, &js)
+	err := validateJSONRequestBody(w, req, &js)
 
 	if err == nil {
 		t.Fatal("Error was nil")
@@ -324,13 +270,13 @@ func Test_decodeJSONBodyMoreJSONs(t *testing.T) {
 	moreJSONs := strings.Repeat(string(reqBodyJSON), 2)
 
 	req, _ := http.NewRequest("", "", strings.NewReader(moreJSONs))
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 	w := httptest.NewRecorder()
 
 	wantCode := http.StatusBadRequest
 	wantMsg := "Request body must only contain a single JSON object"
 
-	err := validateJSONRequest(w, req, &js)
+	err := validateJSONRequestBody(w, req, &js)
 
 	if err == nil {
 		t.Fatal("Error was nil")
@@ -358,13 +304,13 @@ func Test_decodeJSONBodyMissingField(t *testing.T) {
 	missingOneField := strings.Replace(string(reqBodyJSON), ",\"FieldInt\":123", "", 1)
 
 	req, _ := http.NewRequest("", "", strings.NewReader(missingOneField))
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 	w := httptest.NewRecorder()
 
 	wantCode := http.StatusBadRequest
 	wantMsg := "Request body is not complete"
 
-	err := validateJSONRequest(w, req, &js)
+	err := validateJSONRequestBody(w, req, &js)
 
 	if err == nil {
 		t.Fatal("Error was nil")

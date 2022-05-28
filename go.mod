@@ -3,7 +3,6 @@ module github.com/Nesquiko/go-auth
 go 1.18
 
 require (
-	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-sql-driver/mysql v1.6.0
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
@@ -17,6 +16,7 @@ require (
 )
 
 require (
+	github.com/go-chi/chi v1.5.4
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect

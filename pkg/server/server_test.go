@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/Nesquiko/go-auth/pkg/api"
+	"github.com/Nesquiko/go-auth/pkg/consts"
 	"github.com/Nesquiko/go-auth/pkg/db"
 	"github.com/Nesquiko/go-auth/pkg/db/mocks"
 	"github.com/go-chi/chi/v5"
@@ -26,7 +27,7 @@ func TestMain(m *testing.M) {
 	}
 	server = api.HandlerWithOptions(s, servOpts)
 
-	dbConn = mocks.DBConnectionMock{}
+	db.DBConn = mocks.DBConnectionMock{}
 
 	code := m.Run()
 
@@ -100,7 +101,7 @@ func TestSignupBadRequest(t *testing.T) {
 
 	for _, tc := range testCases {
 		req := httptest.NewRequest("POST", "/signup", strings.NewReader(tc.reqString))
-		req.Header.Add(contentType, applicationJSON)
+		req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 		wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
 			"status_code", tc.wantCode,
@@ -112,49 +113,6 @@ func TestSignupBadRequest(t *testing.T) {
 
 		if res.Code != tc.wantCode {
 			t.Errorf("Expected status code to be %d, but was %d", tc.wantCode, res.Code)
-		}
-		if res.Body.String() != wantBody {
-			t.Errorf("Expected response body to be %s, but was %s", wantBody, res.Body)
-		}
-	}
-}
-
-func TestSignupContentTypeHeader(t *testing.T) {
-	testCases := []struct {
-		name          string
-		reqString     string
-		contentHeader string
-	}{
-		{"NoContentTypeHeader", "\"{}\"", ""},
-		{"WrongContentTypeHeader", "\"{}\"", "textPlain"},
-	}
-
-	for i, tc := range testCases {
-
-		var buf bytes.Buffer
-		err := json.NewEncoder(&buf).Encode(tc.reqString)
-		if err != nil {
-			t.Fatalf("Error in encoding of request in test case %d", i)
-		}
-
-		req := httptest.NewRequest("POST", "/signup", &buf)
-		req.Header.Add(contentType, tc.contentHeader)
-
-		wantCode := http.StatusUnsupportedMediaType
-		wantType := "bad.request"
-		wantTitle := "Bad request"
-		wantDetail := "Content-Type header is not application/json"
-
-		wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
-			"status_code", wantCode,
-			"type", wantType,
-			"title", wantTitle,
-			"detail", wantDetail)
-
-		res := executeRequest(req)
-
-		if res.Code != wantCode {
-			t.Errorf("Expected status code to be %d, but was %d", wantCode, res.Code)
 		}
 		if res.Body.String() != wantBody {
 			t.Errorf("Expected response body to be %s, but was %s", wantBody, res.Body)
@@ -176,7 +134,7 @@ func TestSignupValidRequest(t *testing.T) {
 	}
 
 	req := httptest.NewRequest("POST", "/signup", &buf)
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 	wantCode := http.StatusOK
 
@@ -189,7 +147,7 @@ func TestSignupValidRequest(t *testing.T) {
 
 func TestSignupUsernameAlreadyExists(t *testing.T) {
 	username := "Barz"
-	dbConn.SaveUser(&db.UserModel{
+	db.DBConn.SaveUser(&db.UserModel{
 		Email:        "bar@foo.com",
 		Username:     username,
 		PasswordHash: "hash",
@@ -208,7 +166,7 @@ func TestSignupUsernameAlreadyExists(t *testing.T) {
 	}
 
 	req := httptest.NewRequest("POST", "/signup", &buf)
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 	wantCode := http.StatusConflict
 	wantType := "username.already_exists"
@@ -233,7 +191,7 @@ func TestSignupUsernameAlreadyExists(t *testing.T) {
 
 func TestSignupEmailAlreadyExists(t *testing.T) {
 	email := "bar@foo.com"
-	dbConn.SaveUser(&db.UserModel{
+	db.DBConn.SaveUser(&db.UserModel{
 		Email:        email,
 		Username:     "Bar",
 		PasswordHash: "hash",
@@ -252,7 +210,7 @@ func TestSignupEmailAlreadyExists(t *testing.T) {
 	}
 
 	req := httptest.NewRequest("POST", "/signup", &buf)
-	req.Header.Add(contentType, applicationJSON)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 	wantCode := http.StatusConflict
 	wantType := "email.already_used"

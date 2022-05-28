@@ -12,11 +12,6 @@ import (
 )
 
 const (
-	// contentType is a const for a Content-Type header key.
-	contentType = "Content-Type"
-	// applicationJSON is a const for a Content-Type header application/json value.
-	applicationJSON = "application/json"
-
 	// maxSize is a maximal size, in Bytes, of a JSON reques body.
 	maxSize = 128
 )
@@ -34,15 +29,10 @@ func (mr malformedRequestErr) Error() string {
 	return mr.msg
 }
 
-// validateJSONRequest validates if the JSON request is correct form. If something
+// validateJSONRequestBody validates if the JSON request is correct form. If something
 // is not valid, a malformedResultErr error is returned with details about the
 // error that occured.
-func validateJSONRequest[T any](w http.ResponseWriter, r *http.Request, dest T) error {
-
-	if ct := r.Header.Get(contentType); ct != applicationJSON {
-		responseMsg := "Content-Type header is not application/json"
-		return malformedRequestErr{status: http.StatusUnsupportedMediaType, msg: responseMsg}
-	}
+func validateJSONRequestBody[T any](w http.ResponseWriter, r *http.Request, dest T) error {
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxSize)
 
