@@ -33,9 +33,7 @@ func StartServer() {
 
 	r := chi.NewRouter()
 	middlewares := []api.MiddlewareFunc{
-		func(hf http.HandlerFunc) http.HandlerFunc {
-			return http.HandlerFunc(middleware.Logger(hf).ServeHTTP)
-		},
+		middleware.Logger,
 	}
 
 	var server server.GoAuthServer
