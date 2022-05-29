@@ -15,6 +15,8 @@ require (
 	github.com/google/uuid v1.3.0
 )
 
+require gopkg.in/yaml.v3 v3.0.0 // indirect
+
 require (
 	github.com/go-chi/chi v1.5.4
 	github.com/go-playground/locales v0.14.0 // indirect
