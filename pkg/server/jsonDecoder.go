@@ -87,7 +87,7 @@ func analyzeError(err error) malformedRequestErr {
 		return malformedRequestErr{status: http.StatusBadRequest, msg: responseMsg}
 
 	case errors.Is(err, io.ErrUnexpectedEOF):
-		responseMsg := fmt.Sprintf("Request body contains badly-formed JSON")
+		responseMsg := "Request body contains badly-formed JSON"
 		return malformedRequestErr{status: http.StatusBadRequest, msg: responseMsg}
 
 	case errors.As(err, &unmarshalTypeError):
