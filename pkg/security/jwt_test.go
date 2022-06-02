@@ -46,7 +46,3 @@ func TestGenerateJWTPayloadCorrectExpClaim(t *testing.T) {
 		t.Errorf("No valid exp claim in payload %s", payload)
 	}
 }
-
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
-// eyJ1c2VybmFtZSI6IkpvZSIsImV4cCI6MTY1MzU3Mzg4MX0
-// Afntngmyi3BYIDEij9EsaSJMLe5lcByBlwna25W7jQs
