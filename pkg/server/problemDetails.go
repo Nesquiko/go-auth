@@ -117,7 +117,7 @@ func sqlDuplicateEntry(err mysql.MySQLError) (problemType, title, detail string)
 func sqlNoRows() api.ProblemDetails {
 	problemType := "username.not_found"
 	title := "Entered username was not found"
-	detail := "Username you eneterd was not found"
+	detail := "Username you entered was not found"
 
 	return api.ProblemDetails{
 		StatusCode: http.StatusUnauthorized,
