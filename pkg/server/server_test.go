@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"github.com/Nesquiko/go-auth/pkg/consts"
 	"github.com/Nesquiko/go-auth/pkg/db"
 	"github.com/Nesquiko/go-auth/pkg/db/mocks"
+	"github.com/Nesquiko/go-auth/pkg/security"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -100,23 +102,25 @@ func TestSignupBadRequest(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		req := httptest.NewRequest("POST", "/signup", strings.NewReader(tc.reqString))
-		req.Header.Add(consts.ContentType, consts.ApplicationJSON)
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest("POST", "/signup", strings.NewReader(tc.reqString))
+			req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
-		wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
-			"status_code", tc.wantCode,
-			"type", tc.wantType,
-			"title", tc.wantTitle,
-			"detail", tc.wantDetail)
+			wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
+				"status_code", tc.wantCode,
+				"type", tc.wantType,
+				"title", tc.wantTitle,
+				"detail", tc.wantDetail)
 
-		res := executeRequest(req)
+			res := executeRequest(req)
 
-		if res.Code != tc.wantCode {
-			t.Errorf("Expected status code to be %d, but was %d", tc.wantCode, res.Code)
-		}
-		if res.Body.String() != wantBody {
-			t.Errorf("Expected response body to be %s, but was %s", wantBody, res.Body)
-		}
+			if res.Code != tc.wantCode {
+				t.Errorf("Expected status code to be %d, but was %d", tc.wantCode, res.Code)
+			}
+			if res.Body.String() != wantBody {
+				t.Errorf("Expected response body to be %s, but was %s", wantBody, res.Body)
+			}
+		})
 	}
 }
 
@@ -231,4 +235,219 @@ func TestSignupEmailAlreadyExists(t *testing.T) {
 	if res.Body.String() != wantBody {
 		t.Errorf("Expected response body to be %s, but was %s", wantBody, res.Body)
 	}
+}
+
+func TestLoginBadRequest(t *testing.T) {
+	testCases := []struct {
+		name                            string
+		reqString                       string
+		wantCode                        int
+		wantType, wantTitle, wantDetail string
+	}{
+		{
+			"BadlyFormedJSONBodyAtPosition",
+			// missing , right 	     here
+			"{\"username\":\"Barz\"\"password\":\"foobarz\"}",
+			http.StatusBadRequest, "bad.request", "Bad request",
+			fmt.Sprintf("Request body contains badly-formed JSON (at position %d)", 19),
+		},
+		{
+			"BadlyFormedJSONBody",
+			// missing } at the end
+			"{\"username\":\"Barz\",\"password\":\"foobarz\"",
+			http.StatusBadRequest, "bad.request", "Bad request",
+			"Request body contains badly-formed JSON",
+		},
+		{
+			"InvalidValueForField",
+			"{\"username\":123,\"password\":\"foobarz\"}",
+			http.StatusBadRequest, "bad.request", "Bad request",
+			fmt.Sprintf(
+				"Request body contains an invalid value for the %q field (at position %d)",
+				"username",
+				15,
+			),
+		},
+		{
+			"UnknownField",
+			"{\"username\":\"Barz\",\"password\":\"foobarz\",\"unknown\":\"field\"}",
+			http.StatusBadRequest, "bad.request", "Bad request",
+			fmt.Sprintf("Request body contains unknown field %q", "unknown"),
+		},
+		{
+			"EmptyRequest",
+			"",
+			http.StatusBadRequest, "bad.request", "Bad request",
+			"Request body must not be empty",
+		},
+		{
+			"LargeBody",
+			fmt.Sprintf("{\"username\":%q,\"password\":\"foobarz\"}",
+				strings.Repeat("Josh", 150)),
+			http.StatusRequestEntityTooLarge, "bad.request", "Bad request",
+			fmt.Sprintf("Request body must not be larger than %dB", maxSize),
+		},
+		{
+			"MissingField",
+			"{\"username\":\"Barz\"}",
+			http.StatusBadRequest, "bad.request", "Bad request",
+			"Request body is not complete",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest("POST", "/login", strings.NewReader(tc.reqString))
+			req.Header.Add(consts.ContentType, consts.ApplicationJSON)
+
+			wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
+				"status_code", tc.wantCode,
+				"type", tc.wantType,
+				"title", tc.wantTitle,
+				"detail", tc.wantDetail)
+
+			res := executeRequest(req)
+
+			if res.Code != tc.wantCode {
+				t.Errorf("Expected status code to be %d, but was %d", tc.wantCode, res.Code)
+			}
+			if res.Body.String() != wantBody {
+				t.Errorf("Expected response body to be %s, but was %s", wantBody, res.Body)
+			}
+		})
+	}
+}
+
+func TestLoginUsernameDoesntExists(t *testing.T) {
+	username := "James"
+
+	reqBody := api.LoginRequest{
+		Password: "password",
+		Username: username,
+	}
+
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(reqBody)
+
+	if err != nil {
+		t.Fatal("Error in encoding of struct")
+	}
+
+	req := httptest.NewRequest("POST", "/login", &buf)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
+
+	wantCode := http.StatusUnauthorized
+	wantType := "username.not_found"
+	wantTitle := "Entered username was not found"
+	wantDetail := "Username you entered was not found"
+
+	wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
+		"status_code", wantCode,
+		"type", wantType,
+		"title", wantTitle,
+		"detail", wantDetail)
+
+	res := executeRequest(req)
+
+	if res.Code != wantCode {
+		t.Errorf("Expected status code to be %d, but was %d", wantCode, res.Code)
+	}
+	if res.Body.String() != wantBody {
+		t.Errorf("Expected response body to be %s, but was %s", wantBody, res.Body)
+	}
+}
+
+func TestLoginInvalidPassword(t *testing.T) {
+	username := "James"
+	passwd := "123"
+	passwordHash, _ := security.EncryptPassword(passwd)
+
+	db.DBConn.SaveUser(&db.UserModel{
+		Email:        "james@barz.com",
+		Username:     username,
+		PasswordHash: passwordHash,
+	})
+
+	reqBody := api.LoginRequest{
+		Password: passwd + "4",
+		Username: username,
+	}
+
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(reqBody)
+
+	if err != nil {
+		t.Fatal("Error in encoding of struct")
+	}
+
+	req := httptest.NewRequest("POST", "/login", &buf)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
+
+	wantCode := http.StatusUnauthorized
+	wantType := "credentials.invalid"
+	wantTitle := "Invalid credentials"
+	wantDetail := "Submitted credentials are invalid"
+
+	wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
+		"status_code", wantCode,
+		"type", wantType,
+		"title", wantTitle,
+		"detail", wantDetail)
+
+	res := executeRequest(req)
+
+	if res.Code != wantCode {
+		t.Errorf("Expected status code to be %d, but was %d", wantCode, res.Code)
+	}
+	if res.Body.String() != wantBody {
+		t.Errorf("Expected response body to be %s, but was %s", wantBody, res.Body)
+	}
+}
+
+func TestLoginValidRequest(t *testing.T) {
+	username := "Susan"
+	passwd := "123"
+	passwordHash, _ := security.EncryptPassword(passwd)
+
+	db.DBConn.SaveUser(&db.UserModel{
+		Email:        "susan@barz.com",
+		Username:     username,
+		PasswordHash: passwordHash,
+	})
+
+	reqBody := api.LoginRequest{
+		Password: passwd,
+		Username: username,
+	}
+
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(reqBody)
+
+	if err != nil {
+		t.Fatal("Error in encoding of struct")
+	}
+
+	req := httptest.NewRequest("POST", "/login", &buf)
+	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
+
+	wantCode := http.StatusOK
+	wantClaimUsername := fmt.Sprintf("%q:%q", "username", username)
+	var resBody api.LoginResponse
+
+	res := executeRequest(req)
+	json.Unmarshal(res.Body.Bytes(), &resBody)
+
+	if res.Code != wantCode {
+		t.Errorf("Expected status code to be %d, but was %d", wantCode, res.Code)
+	}
+
+	jwtSplit := strings.Split(resBody.AccessToken, ".")
+	payload, err := base64.RawURLEncoding.DecodeString(jwtSplit[1])
+	if err != nil {
+		t.Fatalf("decoding err was not nil, %q", err.Error())
+	}
+	if !strings.Contains(string(payload), wantClaimUsername) {
+		t.Errorf("No valid username claim in payload %s", payload)
+	}
+
 }
