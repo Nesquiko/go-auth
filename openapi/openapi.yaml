@@ -19,6 +19,7 @@ paths:
       tags:
         - Sign up
       description: Creates new user account in system.
+      operationId: signup
       requestBody:
         $ref: '#/components/requestBodies/SignupRequest'
       responses:
@@ -44,6 +45,7 @@ paths:
       tags:
         - 2FA
       description: Endpoint for establishing a 2FA secret.
+      operationId: setup2FA
       security:
         - unauthBearerToken: []
       responses:
@@ -64,6 +66,7 @@ paths:
       tags:
         - 2FA
       description: Endpoint for verifying 2FA OTP.
+      operationId: verify2FA
       security:
         - unauthBearerToken: []
       responses:
@@ -85,6 +88,7 @@ paths:
         - Log in
       description: Endpoint for authenticating a user based on username
         and password. Returns a unauthenticated JWT needed for 2FA.
+      operationId: login
       requestBody:
         $ref: '#/components/requestBodies/LoginRequest'
       responses:
@@ -253,13 +257,13 @@ components:
           schema:
             type: object
             properties:
-              unaut_token:
+              unauth_token:
                 type: string
                 description: An unauthenticated JWT access token needed in 2FA.
                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
             additionalProperties: false
             required:
-              - unaut_token
+              - unauth_token
 
     Unauthorized:
       description: Missing or invalid JWT token.
