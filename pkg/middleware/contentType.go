@@ -17,9 +17,9 @@ func ContentTypeFilter(next http.Handler) http.Handler {
 
 			pd := api.ProblemDetails{
 				StatusCode: http.StatusUnsupportedMediaType,
-				Type:       "bad.request",
 				Title:      "Bad request",
 				Detail:     responseMsg,
+				Instance:   r.URL.Path,
 			}
 
 			respondWithProblemDetails(w, pd)

@@ -26,13 +26,13 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 	var req api.SignupRequest
 	err := validateJSONRequestBody(w, r, &req)
 	if err != nil {
-		respondWithError(w, BadRequest(err))
+		respondWithError(w, BadRequest(err, r.URL.Path))
 		return
 	}
 
 	hashedPassword, err := security.EncryptPassword(req.Password)
 	if err != nil {
-		respondWithError(w, UnexpectedErrorProblem)
+		respondWithError(w, UnexpectedErrorProblem(r.URL.Path))
 		return
 	}
 
@@ -44,7 +44,7 @@ func (s GoAuthServer) Signup(w http.ResponseWriter, r *http.Request) {
 
 	err = db.DBConn.SaveUser(newUser)
 	if err != nil {
-		respondWithError(w, GetProblemDetails(err))
+		respondWithError(w, GetProblemDetails(err, r.URL.Path))
 		return
 	}
 }
@@ -60,30 +60,34 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 	var req api.LoginRequest
 	err := validateJSONRequestBody(w, r, &req)
 	if err != nil {
-		respondWithError(w, BadRequest(err))
+		respondWithError(w, BadRequest(err, r.URL.Path))
 		return
 	}
 
 	user, err := db.DBConn.UserByUsername(req.Username)
 	if err != nil {
-		respondWithError(w, GetProblemDetails(err))
+		respondWithError(w, GetProblemDetails(err, r.URL.Path))
 		return
 	}
 
 	if !security.HashAndPasswordMatch(user.PasswordHash, req.Password) {
-		respondWithError(w, InvalidCredentials)
+		respondWithError(w, InvalidCredentials(r.URL.Path))
 		return
 	}
 
 	jwt, err := security.GenerateJWT(req.Username)
 	if err != nil {
-		respondWithError(w, UnexpectedErrorProblem)
+		respondWithError(w, UnexpectedErrorProblem(r.URL.Path))
 		return
 	}
 
-	response := api.LoginResponse{AccessToken: jwt}
+	response := api.LoginResponse{UnauthToken: jwt}
 	respondWithSuccess(w, response)
 }
+
+func (s GoAuthServer) Setup2FA(w http.ResponseWriter, r *http.Request) {}
+
+func (s GoAuthServer) Verify2FA(w http.ResponseWriter, r *http.Request) {}
 
 // respondWithSuccess takes a response to be returned to a user making a
 // request and serializes it into a JSON. Then sets a http.StatusOK as the
@@ -99,7 +103,7 @@ func respondWithSuccess[T any](w http.ResponseWriter, response T) {
 // occured during processing of a user request. It is serialized into a JSON.
 // Then a status code is set to the one retrieved from problem details and
 // a response is sent
-func respondWithError(w http.ResponseWriter, problem api.ProblemDetails) {
+func respondWithError(w http.ResponseWriter, problem *api.ProblemDetails) {
 	w.Header().Set(consts.ContentType, consts.ApplicationJSON)
 	w.WriteHeader(problem.StatusCode)
 

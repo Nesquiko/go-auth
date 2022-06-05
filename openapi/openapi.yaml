@@ -8,8 +8,8 @@ paths:
   /signup:
     post:
       tags:
-        - sign up
-      description: Creates new user account in database
+        - Sign up
+      description: Creates new user account in system.
       operationId: signup
       requestBody:
         required: true
@@ -30,7 +30,49 @@ paths:
         default:
           description: unexpected error
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  /2fa/setup:
+    post:
+      tags:
+        - 2FA
+      description: Endpoint for establishing a 2FA secret.
+      operationId: setup2FA
+      security:
+        - unauthBearerToken: []
+      responses:
+        200:
+          $ref: '#/components/responses/Secret2FAResponse'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        default:
+          description: Returns an instance of ProblemDetails response
+            which occured.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  
+  /2fa/verify:
+    post:
+      tags:
+        - 2FA
+      description: Endpoint for verifying 2FA OTP.
+      operationId: verify2FA
+      security:
+        - unauthBearerToken: []
+      responses:
+        200:
+          $ref: '#/components/responses/VerifyResponse'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        default:
+          description: Returns an instance of ProblemDetails response
+            which occured.
+          content:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
 
@@ -39,7 +81,7 @@ paths:
       tags:
         - log in
       description: Endpoint for authenticating a user based on username
-        and password
+        and password. Returns a unauthenticated JWT needed for 2FA.
       operationId: login
       requestBody:
         required: true
@@ -175,3 +217,136 @@ components:
         - type
         - title
         - detail
+        - instance
+
+  requestBodies:
+    SignupRequest:
+      required: true
+      description: Request body for signing up new user
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - username
+              - email
+              - password
+            properties:
+              username:
+                type: string
+                description: Username with which new user account will be
+                  identified in the system
+                maxLength: 30
+                minLength: 3
+                example: Nesquiko12
+                pattern: ^(?=[a-zA-Z0-9]{3,30}$).*
+                x-oapi-codegen-extra-tags:
+                  validate: required
+              email:
+                type: string
+                description: Email address of a new user account
+                maxLength: 320
+                pattern: ^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$
+                example: foo@bar.foo.com
+                x-oapi-codegen-extra-tags:
+                  validate: required
+              password:
+                type: string
+                description: Password for getting access to the new user account
+                maxLength: 32
+                minLength: 6
+                pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
+                example: mySecretPassword123
+                x-oapi-codegen-extra-tags:
+                  validate: required
+            additionalProperties: false
+
+    LoginRequest:
+      description: Request body for logging in a user. 
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+                description: Username of an user account
+                maxLength: 30
+                minLength: 3
+                example: Nesquiko12
+                pattern: ^(?=[a-zA-Z0-9]{3,30}$).*
+                x-oapi-codegen-extra-tags:
+                  validate: required
+              password:
+                type: string
+                description: Password of an user account
+                maxLength: 32
+                minLength: 6
+                pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
+                example: mySecretPassword123
+                x-oapi-codegen-extra-tags:
+                  validate: required
+            additionalProperties: false
+
+  responses:
+    Secret2FAResponse:
+      description: Submitted JWT was valid, response contains a 2FA secret.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              secret: 
+                type: string
+            additionalProperties: false
+            required:
+              - secret
+
+    VerifyResponse:
+      description: Submitted OTP is valid, returns a full access JWT.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              access_token:
+                type: string
+                description: An full access JWT.
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+            additionalProperties: false
+            required:
+              - access_token
+
+    LoginResponse:
+      description: Submitted credentials are valid. Returns unauthenticated JWT,
+        additional 2FA is needed for full access JWT.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              unauth_token:
+                type: string
+                description: An unauthenticated JWT access token needed in 2FA.
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+            additionalProperties: false
+            required:
+              - unauth_token
+
+    Unauthorized:
+      description: Missing or invalid JWT token.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+  securitySchemes:
+    unauthBearerToken:         
+      type: http
+      scheme: bearer
+      bearerFormat: JWT  
+      description: An unauthenticated JWT for establishing a 2FA secret.
