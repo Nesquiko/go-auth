@@ -8,6 +8,8 @@ info:
 tags:
   - name: Sign up
     description: Sign up flow for registering new users.
+  - name: 2FA
+    description: Endpoints for establishing and verifying 2FA.
   - name: Log in
     description: Log in flow for authenticating users.
 
