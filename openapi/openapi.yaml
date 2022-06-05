@@ -5,13 +5,18 @@ info:
   title: Go-Auth
   description: An authentication and authorization micro service API
 
+tags:
+  - name: Sign up
+    description: Sign up flow for registering new users.
+  - name: Log in
+    description: Log in flow for authenticating users.
+
 paths:
   /signup:
     post:
       tags:
-        - sign up
-      description: Creates new user account in database
-      operationId: signup
+        - Sign up
+      description: Creates new user account in system.
       requestBody:
         required: true
         $ref: '#/components/requestBodies/SignupRequest'
@@ -35,10 +40,9 @@ paths:
   /login:
     post:
       tags:
-        - log in
+        - Log in
       description: Endpoint for authenticating a user based on username
         and password
-      operationId: login
       requestBody:
         required: true
         content:
