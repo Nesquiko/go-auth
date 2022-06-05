@@ -158,7 +158,8 @@ components:
 
     LoginUnauthenticatedRequest:
       description: Request body for logging in a user. Additional 2FA is
-        required for the user to be fully logged in.
+        required for the user to be fully logged in. The expiration time
+        for the returned JWT is 5 minutes.
       required: true
       content:
         application/json:
