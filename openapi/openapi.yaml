@@ -57,14 +57,14 @@ paths:
           description: User submitted invalid credentials, generic message
             is returned, for security reasons.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         default:
           description: Returns an instance of ProblemDetails response
             which occured.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
 
