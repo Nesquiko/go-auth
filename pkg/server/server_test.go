@@ -20,6 +20,8 @@ import (
 )
 
 var server http.Handler
+var signupPath = "/signup"
+var loginPath = "/login"
 
 func TestMain(m *testing.M) {
 	r := chi.NewRouter()
@@ -45,72 +47,80 @@ func executeRequest(req *http.Request) *httptest.ResponseRecorder {
 
 func TestSignupBadRequest(t *testing.T) {
 	testCases := []struct {
-		name                            string
-		reqString                       string
-		wantCode                        int
-		wantType, wantTitle, wantDetail string
+		name                                string
+		reqString                           string
+		wantCode                            int
+		wantTitle, wantDetail, wantInstance string
 	}{
 		{
 			"BadlyFormedJSONBodyAtPosition",
 			// missing , right 	     here
 			"{\"email\":\"test@foo.com\"\"password\":\"foobarz\",\"username\":\"Barz\"}",
-			http.StatusBadRequest, "bad.request", "Bad request",
+			http.StatusBadRequest, "Bad request",
 			fmt.Sprintf("Request body contains badly-formed JSON (at position %d)", 24),
+			signupPath,
 		},
 		{
 			"BadlyFormedJSONBody",
 			// missing } at the end
 			"{\"email\":\"test@foo.com\",\"password\":\"foobarz\",\"username\":\"Barz\"",
-			http.StatusBadRequest, "bad.request", "Bad request",
+			http.StatusBadRequest, "Bad request",
 			"Request body contains badly-formed JSON",
+			signupPath,
 		},
 		{
 			"InvalidValueForField",
 			"{\"email\":123,\"password\":\"foobarz\",\"username\":\"Barz\"}",
-			http.StatusBadRequest, "bad.request", "Bad request",
+			http.StatusBadRequest, "Bad request",
 			fmt.Sprintf(
 				"Request body contains an invalid value for the %q field (at position %d)",
 				"email",
 				12,
 			),
+			signupPath,
 		},
 		{
 			"UnknownField",
 			"{\"unknown\":\"field\",\"email\":\"test@foo.com\",\"password\":\"foobarz\",\"username\":\"Barz\"}",
-			http.StatusBadRequest, "bad.request", "Bad request",
+			http.StatusBadRequest, "Bad request",
 			fmt.Sprintf("Request body contains unknown field %q", "unknown"),
+			signupPath,
 		},
 		{
 			"EmptyRequest",
 			"",
-			http.StatusBadRequest, "bad.request", "Bad request",
+			http.StatusBadRequest, "Bad request",
 			"Request body must not be empty",
+			signupPath,
 		},
 		{
 			"LargeBody",
 			fmt.Sprintf("{\"email\":%q,\"password\":\"foobarz\",\"username\":\"Barz\"}",
 				strings.Repeat("email", 140)),
-			http.StatusRequestEntityTooLarge, "bad.request", "Bad request",
+			http.StatusRequestEntityTooLarge, "Bad request",
 			fmt.Sprintf("Request body must not be larger than %dB", maxSize),
+			signupPath,
 		},
 		{
 			"MissingField",
 			"{\"email\":\"test@foo.com\",\"password\":\"foobarz\"}",
-			http.StatusBadRequest, "bad.request", "Bad request",
+			http.StatusBadRequest, "Bad request",
 			"Request body is not complete",
+			signupPath,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			req := httptest.NewRequest("POST", "/signup", strings.NewReader(tc.reqString))
+			req := httptest.NewRequest("POST", signupPath, strings.NewReader(tc.reqString))
 			req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 			wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
 				"status_code", tc.wantCode,
-				"type", tc.wantType,
 				"title", tc.wantTitle,
-				"detail", tc.wantDetail)
+				"detail", tc.wantDetail,
+				"instance", tc.wantInstance,
+			)
 
 			res := executeRequest(req)
 
@@ -173,15 +183,16 @@ func TestSignupUsernameAlreadyExists(t *testing.T) {
 	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 	wantCode := http.StatusConflict
-	wantType := "username.already_exists"
 	wantTitle := "Username already exists"
 	wantDetail := fmt.Sprintf("Username '%s' already exists", username)
+	wantInstance := signupPath
 
 	wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
 		"status_code", wantCode,
-		"type", wantType,
 		"title", wantTitle,
-		"detail", wantDetail)
+		"detail", wantDetail,
+		"instance", wantInstance,
+	)
 
 	res := executeRequest(req)
 
@@ -217,15 +228,16 @@ func TestSignupEmailAlreadyExists(t *testing.T) {
 	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 	wantCode := http.StatusConflict
-	wantType := "email.already_used"
 	wantTitle := "Email already used"
 	wantDetail := fmt.Sprintf("Email '%s' is already used", email)
+	wantInstance := signupPath
 
 	wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
 		"status_code", wantCode,
-		"type", wantType,
 		"title", wantTitle,
-		"detail", wantDetail)
+		"detail", wantDetail,
+		"instance", wantInstance,
+	)
 
 	res := executeRequest(req)
 
@@ -239,59 +251,66 @@ func TestSignupEmailAlreadyExists(t *testing.T) {
 
 func TestLoginBadRequest(t *testing.T) {
 	testCases := []struct {
-		name                            string
-		reqString                       string
-		wantCode                        int
-		wantType, wantTitle, wantDetail string
+		name                                string
+		reqString                           string
+		wantCode                            int
+		wantTitle, wantDetail, wantInstance string
 	}{
 		{
 			"BadlyFormedJSONBodyAtPosition",
 			// missing , right 	     here
 			"{\"username\":\"Barz\"\"password\":\"foobarz\"}",
-			http.StatusBadRequest, "bad.request", "Bad request",
+			http.StatusBadRequest, "Bad request",
 			fmt.Sprintf("Request body contains badly-formed JSON (at position %d)", 19),
+			loginPath,
 		},
 		{
 			"BadlyFormedJSONBody",
 			// missing } at the end
 			"{\"username\":\"Barz\",\"password\":\"foobarz\"",
-			http.StatusBadRequest, "bad.request", "Bad request",
+			http.StatusBadRequest, "Bad request",
 			"Request body contains badly-formed JSON",
+			loginPath,
 		},
 		{
 			"InvalidValueForField",
 			"{\"username\":123,\"password\":\"foobarz\"}",
-			http.StatusBadRequest, "bad.request", "Bad request",
+			http.StatusBadRequest, "Bad request",
 			fmt.Sprintf(
 				"Request body contains an invalid value for the %q field (at position %d)",
 				"username",
 				15,
 			),
+			loginPath,
 		},
 		{
 			"UnknownField",
 			"{\"username\":\"Barz\",\"password\":\"foobarz\",\"unknown\":\"field\"}",
-			http.StatusBadRequest, "bad.request", "Bad request",
+			http.StatusBadRequest, "Bad request",
 			fmt.Sprintf("Request body contains unknown field %q", "unknown"),
+			loginPath,
 		},
 		{
 			"EmptyRequest",
 			"",
-			http.StatusBadRequest, "bad.request", "Bad request",
+			http.StatusBadRequest, "Bad request",
 			"Request body must not be empty",
+			loginPath,
 		},
 		{
 			"LargeBody",
 			fmt.Sprintf("{\"username\":%q,\"password\":\"foobarz\"}",
 				strings.Repeat("Josh", 150)),
-			http.StatusRequestEntityTooLarge, "bad.request", "Bad request",
+			http.StatusRequestEntityTooLarge, "Bad request",
 			fmt.Sprintf("Request body must not be larger than %dB", maxSize),
+			loginPath,
 		},
 		{
 			"MissingField",
 			"{\"username\":\"Barz\"}",
-			http.StatusBadRequest, "bad.request", "Bad request",
+			http.StatusBadRequest, "Bad request",
 			"Request body is not complete",
+			loginPath,
 		},
 	}
 
@@ -302,9 +321,10 @@ func TestLoginBadRequest(t *testing.T) {
 
 			wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
 				"status_code", tc.wantCode,
-				"type", tc.wantType,
 				"title", tc.wantTitle,
-				"detail", tc.wantDetail)
+				"detail", tc.wantDetail,
+				"instance", tc.wantInstance,
+			)
 
 			res := executeRequest(req)
 
@@ -337,15 +357,16 @@ func TestLoginUsernameDoesntExists(t *testing.T) {
 	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 	wantCode := http.StatusUnauthorized
-	wantType := "username.not_found"
 	wantTitle := "Entered username was not found"
 	wantDetail := "Username you entered was not found"
+	wantInstance := loginPath
 
 	wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
 		"status_code", wantCode,
-		"type", wantType,
 		"title", wantTitle,
-		"detail", wantDetail)
+		"detail", wantDetail,
+		"instance", wantInstance,
+	)
 
 	res := executeRequest(req)
 
@@ -384,15 +405,16 @@ func TestLoginInvalidPassword(t *testing.T) {
 	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 	wantCode := http.StatusUnauthorized
-	wantType := "credentials.invalid"
 	wantTitle := "Invalid credentials"
 	wantDetail := "Submitted credentials are invalid"
+	wantInstance := loginPath
 
 	wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
 		"status_code", wantCode,
-		"type", wantType,
 		"title", wantTitle,
-		"detail", wantDetail)
+		"detail", wantDetail,
+		"instance", wantInstance,
+	)
 
 	res := executeRequest(req)
 
@@ -441,7 +463,7 @@ func TestLoginValidRequest(t *testing.T) {
 		t.Errorf("Expected status code to be %d, but was %d", wantCode, res.Code)
 	}
 
-	jwtSplit := strings.Split(resBody.AccessToken, ".")
+	jwtSplit := strings.Split(resBody.UnauthToken, ".")
 	payload, err := base64.RawURLEncoding.DecodeString(jwtSplit[1])
 	if err != nil {
 		t.Fatalf("decoding err was not nil, %q", err.Error())

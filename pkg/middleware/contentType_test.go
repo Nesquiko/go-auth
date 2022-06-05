@@ -54,34 +54,36 @@ func TestContentTypeFilterInvalidHeader(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			err := json.NewEncoder(&buf).Encode(tc.reqString)
+			if err != nil {
+				t.Fatalf("Error in encoding of request in test case %d", i)
+			}
 
-		var buf bytes.Buffer
-		err := json.NewEncoder(&buf).Encode(tc.reqString)
-		if err != nil {
-			t.Fatalf("Error in encoding of request in test case %d", i)
-		}
+			req := httptest.NewRequest("POST", "/signup", &buf)
+			req.Header.Add(consts.ContentType, tc.contentHeader)
 
-		req := httptest.NewRequest("POST", "/signup", &buf)
-		req.Header.Add(consts.ContentType, tc.contentHeader)
+			wantCode := http.StatusUnsupportedMediaType
+			wantTitle := "Bad request"
+			wantDetail := "Content-Type header is not application/json"
+			wantInstance := "/signup"
 
-		wantCode := http.StatusUnsupportedMediaType
-		wantType := "bad.request"
-		wantTitle := "Bad request"
-		wantDetail := "Content-Type header is not application/json"
+			wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
+				"status_code", wantCode,
+				"title", wantTitle,
+				"detail", wantDetail,
+				"instance", wantInstance,
+			)
 
-		wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
-			"status_code", wantCode,
-			"type", wantType,
-			"title", wantTitle,
-			"detail", wantDetail)
+			res := executeRequest(req)
 
-		res := executeRequest(req)
-
-		if res.Code != wantCode {
-			t.Errorf("Expected status code to be %d, but was %d", wantCode, res.Code)
-		}
-		if res.Body.String() != wantBody {
-			t.Errorf("Expected response body to be %s, but was %s", wantBody, res.Body)
-		}
+			if res.Code != wantCode {
+				t.Errorf("Expected status code to be %d, but was %d", wantCode, res.Code)
+			}
+			if res.Body.String() != wantBody {
+				t.Errorf("Expected response body to be %s, but was %s", wantBody, res.Body)
+			}
+		})
 	}
 }

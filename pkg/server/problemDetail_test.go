@@ -16,15 +16,15 @@ func TestGetProblemDetailsMySQLDuplicateEntryUsername(t *testing.T) {
 		Message: "duplicate entries for users.username",
 	}
 	wantCode := http.StatusConflict
-	wantType := "username.already_exists"
+	wantInstance := "/signup"
 
-	problem := GetProblemDetails(&fakeError)
+	problem := GetProblemDetails(&fakeError, wantInstance)
 
 	if problem.StatusCode != wantCode {
 		t.Errorf("Wrong status code, expected: %d, but was %d", wantCode, problem.StatusCode)
 	}
-	if problem.Type != wantType {
-		t.Errorf("Wrong type, expected: %q, but was %q", wantType, problem.Type)
+	if problem.Instance != wantInstance {
+		t.Errorf("Wrong instance, expected: %q, but was %q", wantInstance, problem.Instance)
 	}
 }
 
@@ -34,15 +34,15 @@ func TestGetProblemDetailsMySQLDuplicateEntryEmail(t *testing.T) {
 		Message: "duplicate entries for users.email",
 	}
 	wantCode := http.StatusConflict
-	wantType := "email.already_used"
+	wantInstance := "/signup"
 
-	problem := GetProblemDetails(&fakeError)
+	problem := GetProblemDetails(&fakeError, wantInstance)
 
 	if problem.StatusCode != wantCode {
 		t.Errorf("Wrong status code, expected: %d, but was %d", wantCode, problem.StatusCode)
 	}
-	if problem.Type != wantType {
-		t.Errorf("Wrong type, expected: %q, but was %q", wantType, problem.Type)
+	if problem.Instance != wantInstance {
+		t.Errorf("Wrong instance, expected: %q, but was %q", wantInstance, problem.Instance)
 	}
 }
 
@@ -52,15 +52,15 @@ func TestGetProblemDetailsMySQLDuplicateUnknownEntry(t *testing.T) {
 		Message: "duplicate entries",
 	}
 	wantCode := http.StatusConflict
-	wantType := "unknown.duplicate"
+	wantInstance := "/signup"
 
-	problem := GetProblemDetails(&fakeError)
+	problem := GetProblemDetails(&fakeError, wantInstance)
 
 	if problem.StatusCode != wantCode {
 		t.Errorf("Wrong status code, expected: %d, but was %d", wantCode, problem.StatusCode)
 	}
-	if problem.Type != wantType {
-		t.Errorf("Wrong type, expected: %q, but was %q", wantType, problem.Type)
+	if problem.Instance != wantInstance {
+		t.Errorf("Wrong instance, expected: %q, but was %q", wantInstance, problem.Instance)
 	}
 }
 
@@ -70,9 +70,10 @@ func TestGetProblemDetailsUnknownMySQLError(t *testing.T) {
 		Message: "unknown error",
 	}
 
-	problem := GetProblemDetails(&fakeError)
+	wantInstance := "/login"
+	problem := GetProblemDetails(&fakeError, wantInstance)
 
-	if !reflect.DeepEqual(problem, UnexpectedErrorProblem) {
+	if !reflect.DeepEqual(problem, UnexpectedErrorProblem(wantInstance)) {
 		t.Errorf("Returned problem is not UnexpectedErrorProblem, %q", problem)
 	}
 }
@@ -80,24 +81,25 @@ func TestGetProblemDetailsUnknownMySQLError(t *testing.T) {
 func TestGetProblemDetailsSQLNoRowsError(t *testing.T) {
 	fakeError := sql.ErrNoRows
 	wantCode := http.StatusUnauthorized
-	wantType := "username.not_found"
+	wantInstance := "/login"
 
-	problem := GetProblemDetails(fakeError)
+	problem := GetProblemDetails(fakeError, wantInstance)
 
 	if problem.StatusCode != wantCode {
 		t.Errorf("Wrong status code, expected: %d, but was %d", wantCode, problem.StatusCode)
 	}
-	if problem.Type != wantType {
-		t.Errorf("Wrong type, expected: %q, but was %q", wantType, problem.Type)
+	if problem.Instance != wantInstance {
+		t.Errorf("Wrong instance, expected: %q, but was %q", wantInstance, problem.Instance)
 	}
 }
 
 func TestGetProblemDetailsUnknownError(t *testing.T) {
 	fakeError := errors.New("unknown error")
+	wantInstance := "/login"
 
-	problem := GetProblemDetails(fakeError)
+	problem := GetProblemDetails(fakeError, wantInstance)
 
-	if !reflect.DeepEqual(problem, UnexpectedErrorProblem) {
+	if !reflect.DeepEqual(problem, UnexpectedErrorProblem(wantInstance)) {
 		t.Errorf("Returned problem is not UnexpectedErrorProblem, %q", problem)
 	}
 }
