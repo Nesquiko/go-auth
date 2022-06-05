@@ -51,6 +51,7 @@ paths:
           description: Submitted credentials are valid and response contains
             a JWT access token for unauthenticated user, additional 2FA
             is required. Expiration of this token is 5 minutes.
+          $ref: '#/components/responses/LoginUnauthenticatedResponse'
         401:
           description: User submitted invalid credentials, generic message
             is returned, for security reasons.
@@ -68,18 +69,6 @@ paths:
             
 components:
   schemas:
-
-    LoginResponse:
-      type: object
-      properties:
-        access_token:
-          type: string
-          description: A JWT access token generated for this login session
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-      additionalProperties: false
-      required:
-        - access_token
-
     ProblemDetails:
       type: object
       description: A problem details response, which occured during processing
@@ -113,7 +102,6 @@ components:
         - detail
         - instance
 
-  
   requestBodies:
     SignupRequest:
       required: true
@@ -188,3 +176,22 @@ components:
                 x-oapi-codegen-extra-tags:
                   validate: required
             additionalProperties: false
+
+  responses:
+    LoginUnauthenticatedResponse:
+      description: Submitted credentials are valid and response contains
+        a JWT access token for unauthenticated user, additional 2FA
+        is required. Expiration of this token is 5 minutes.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              access_token:
+                type: string
+                description: An unauthenticated JWT access token generated.
+                  2FA is needed. Expiration of this token is 5 minutes.
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+            additionalProperties: false
+            required:
+              - access_token
