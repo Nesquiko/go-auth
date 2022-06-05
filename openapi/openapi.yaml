@@ -1,4 +1,5 @@
 openapi: 3.0.0
+
 info:
   version: 1.0.0
   title: Go-Auth
@@ -165,8 +166,15 @@ components:
           description: Human-readable explanation specific to this
             occurrence of the problem
           example: Entered email address 'foo@bar.com' is already used
+        instance:
+          type: string
+          format: URI
+          description: A URI reference that identifies the specific occurrence
+            of the problem.
+          example: /signup
       additionalProperties: false
       required:
         - status_code
         - title
         - detail
+        - instance
