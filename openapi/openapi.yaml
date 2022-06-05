@@ -21,16 +21,17 @@ paths:
         $ref: '#/components/requestBodies/SignupRequest'
       responses:
         201:
-          description: Succesfully signed up (created) a new user
-      
+          description: Succesfully signed up (created) a new user.
         409:
-          description: Either an username or an email is already used
+          description: Either an username or an email is already used.
+            Returns a generic message, for security reasons.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         default:
-          description: unexpected error
+          description: Returns an instance of ProblemDetails response
+            which occured.
           content:
             application/json:
               schema:
