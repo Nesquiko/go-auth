@@ -58,6 +58,26 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  
+  /2fa/verify:
+    post:
+      tags:
+        - 2FA
+      description: Endpoint for verifying 2FA OTP.
+      security:
+        - unauthBearerToken: []
+      responses:
+        200:
+          $ref: '#/components/responses/VerifyResponse'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        default:
+          description: Returns an instance of ProblemDetails response
+            which occured.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
 
   /login:
     post:
@@ -210,6 +230,8 @@ components:
             required:
               - secret
 
+    VerifyResponse:
+      description: Submitted OTP is valid, returns a full access JWT.
       content:
         application/json:
           schema:
@@ -222,6 +244,22 @@ components:
             additionalProperties: false
             required:
               - access_token
+
+    LoginResponse:
+      description: Submitted credentials are valid. Returns unauthenticated JWT,
+        additional 2FA is needed for full access JWT.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              unaut_token:
+                type: string
+                description: An unauthenticated JWT access token needed in 2FA.
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+            additionalProperties: false
+            required:
+              - unaut_token
 
     Unauthorized:
       description: Missing or invalid JWT token.
