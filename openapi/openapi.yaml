@@ -44,16 +44,16 @@ paths:
       tags:
         - Log in
       description: Endpoint for authenticating a user based on username
-        and password. Returns a JWT for unauthenticated user, additional 2FA
-        is required. 
+        and password. If user setuped 2FA returns a full access JWT, otherwise
+        returns a unauthenticated JWT needed for setting up 2FA.
       requestBody:
-        $ref: '#/components/requestBodies/LoginUnauthenticatedRequest'
+        $ref: '#/components/requestBodies/LoginRequest'
       responses:
         200:
           description: Submitted credentials are valid and response contains
             a JWT access token for unauthenticated user, additional 2FA
             is required. Expiration of this token is 5 minutes.
-          $ref: '#/components/responses/LoginUnauthenticatedResponse'
+          $ref: '#/components/responses/LoginResponse'
         401:
           description: User submitted invalid credentials, generic message
             is returned, for security reasons.
@@ -146,10 +146,8 @@ components:
                   validate: required
             additionalProperties: false
 
-    LoginUnauthenticatedRequest:
-      description: Request body for logging in a user. Additional 2FA is
-        required for the user to be fully logged in. The expiration time
-        for the returned JWT is 5 minutes.
+    LoginRequest:
+      description: Request body for logging in a user. 
       required: true
       content:
         application/json:
@@ -180,20 +178,27 @@ components:
             additionalProperties: false
 
   responses:
-    LoginUnauthenticatedResponse:
-      description: Submitted credentials are valid and response contains
-        a JWT access token for unauthenticated user, additional 2FA
-        is required. Expiration of this token is 5 minutes.
+    LoginResponse:
+      description: Submitted credentials are valid. If user succesfully enabled
+        2FA, full access JWT is returned, otherwise an unauthenticated JWT
+        needed for establishing a 2FA is returned. This unauthenticated JWT has
+        expiration time of 5 minutes.
       content:
         application/json:
           schema:
             type: object
             properties:
+              authenticated:
+                type: boolean
+                description: Flag for indicating if user succesfully enabled 2FA.
               access_token:
                 type: string
-                description: An unauthenticated JWT access token generated.
-                  2FA is needed. Expiration of this token is 5 minutes.
+                description: A JWT access token, if the authenticated flag is
+                  false, this token is only for setting up 2FA, and has expiration
+                  time of 5 minutes. Otherwise it is a full access token.
                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
             additionalProperties: false
             required:
+              - authenticated
               - access_token
+
