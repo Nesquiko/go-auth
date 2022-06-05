@@ -26,14 +26,14 @@ paths:
           description: Either an username or an email is already used.
             Returns a generic message, for security reasons.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         default:
           description: Returns an instance of ProblemDetails response
             which occured.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
 
@@ -82,7 +82,6 @@ components:
       additionalProperties: false
       required:
         - access_token
-
 
     ProblemDetails:
       type: object
