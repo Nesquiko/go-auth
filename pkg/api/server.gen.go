@@ -4,6 +4,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -12,6 +13,12 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+
+	// (POST /2fa/setup)
+	Setup2FA(w http.ResponseWriter, r *http.Request)
+
+	// (POST /2fa/verify)
+	Verify2FA(w http.ResponseWriter, r *http.Request)
 
 	// (POST /login)
 	Login(w http.ResponseWriter, r *http.Request)
@@ -28,6 +35,40 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// Setup2FA operation middleware
+func (siw *ServerInterfaceWrapper) Setup2FA(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, UnauthBearerTokenScopes, []string{""})
+
+	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Setup2FA(w, r)
+	})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// Verify2FA operation middleware
+func (siw *ServerInterfaceWrapper) Verify2FA(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, UnauthBearerTokenScopes, []string{""})
+
+	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Verify2FA(w, r)
+	})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
 
 // Login operation middleware
 func (siw *ServerInterfaceWrapper) Login(w http.ResponseWriter, r *http.Request) {
@@ -172,6 +213,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/2fa/setup", wrapper.Setup2FA)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/2fa/verify", wrapper.Verify2FA)
+	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/login", wrapper.Login)
 	})
