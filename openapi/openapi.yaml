@@ -86,21 +86,23 @@ components:
     ProblemDetails:
       type: object
       description: A problem details response, which occured during processing
-        of a request (trying to adhere to RFC 7807)
+        of a request (adheres to RFC 7807).
       properties:
         status_code:
           type: integer
-          description: A http status code describing a problem
+          description: A http status code describing a problem.
+            Matches the status code of the response.
           example: 500
         title:
           type: string
           description: A short, human-readable summary of the problem type
-          example: Entered email is alredy used
+          example: Entered email or username is alredy used
         detail:
           type: string
           description: Human-readable explanation specific to this
             occurrence of the problem
-          example: Entered email address 'foo@bar.com' is already used
+          example: Email, or username you tried to sign up with is
+            already used.
         instance:
           type: string
           format: URI
