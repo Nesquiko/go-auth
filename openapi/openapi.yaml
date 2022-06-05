@@ -45,10 +45,7 @@ paths:
         and password
       requestBody:
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
+        $ref: '#/components/requestBodies/LoginUnauthenticatedRequest'
 
       responses:
         200:
