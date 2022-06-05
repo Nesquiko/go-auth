@@ -42,7 +42,8 @@ paths:
       tags:
         - Log in
       description: Endpoint for authenticating a user based on username
-        and password
+        and password. Returns a JWT for unauthenticated user, additional 2FA
+        is required. 
       requestBody:
         required: true
         $ref: '#/components/requestBodies/LoginUnauthenticatedRequest'
@@ -50,19 +51,18 @@ paths:
       responses:
         200:
           description: Submitted credentials are valid and response contains
-            a JWT access token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginResponse'
+            a JWT access token for unauthenticated user, additional 2FA
+            is required. Expiration of this token is 5 minutes.
         401:
-          description: User submitted invalid credentials
+          description: User submitted invalid credentials, generic message
+            is returned, for security reasons.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         default:
-          description: unexpected error
+          description: Returns an instance of ProblemDetails response
+            which occured.
           content:
             application/json:
               schema:
