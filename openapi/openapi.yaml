@@ -39,6 +39,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
 
+  /setup-2fa:
+    post:
+      tags:
+        - 2FA
+      description: Endpoint for establishing a 2FA secret.
+      security:
+        - unauthBearerToken: []
+      responses:
+        200:
+          $ref: '#/components/responses/Secret2FAResponse'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        default:
+          description: Returns an instance of ProblemDetails response
+            which occured.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
   /login:
     post:
       tags:
@@ -178,6 +198,19 @@ components:
             additionalProperties: false
 
   responses:
+    Secret2FAResponse:
+      description: Submitted JWT was valid, response contains a 2FA secret.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              secret: 
+                type: string
+            additionalProperties: false
+            required:
+              - secret
+
     LoginResponse:
       description: Submitted credentials are valid. If user succesfully enabled
         2FA, full access JWT is returned, otherwise an unauthenticated JWT
@@ -202,3 +235,16 @@ components:
               - authenticated
               - access_token
 
+    Unauthorized:
+      description: Missing or invalid JWT token.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+  securitySchemes:
+    unauthBearerToken:         
+      type: http
+      scheme: bearer
+      bearerFormat: JWT  
+      description: An unauthenticated JWT for establishing a 2FA secret.
