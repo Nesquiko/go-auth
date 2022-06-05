@@ -18,7 +18,6 @@ paths:
         - Sign up
       description: Creates new user account in system.
       requestBody:
-        required: true
         $ref: '#/components/requestBodies/SignupRequest'
       responses:
         201:
@@ -117,9 +116,11 @@ components:
         - title
         - detail
         - instance
+
   
   requestBodies:
     SignupRequest:
+      required: true
       description: Request body for signing up new user
       content:
         application/json:
