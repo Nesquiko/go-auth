@@ -75,32 +75,6 @@ paths:
 components:
   schemas:
 
-    LoginRequest:
-      type: object
-      properties:
-        username:
-          type: string
-          description: Username of an user account
-          maxLength: 30
-          minLength: 3
-          example: Nesquiko12
-          pattern: ^(?=[a-zA-Z0-9]{3,30}$).*
-          x-oapi-codegen-extra-tags:
-            validate: required
-        password:
-          type: string
-          description: Password of an user account
-          maxLength: 32
-          minLength: 6
-          pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
-          example: mySecretPassword123
-          x-oapi-codegen-extra-tags:
-            validate: required
-      additionalProperties: false
-      required:
-        - username
-        - password
-
     LoginResponse:
       type: object
       properties:
@@ -177,6 +151,37 @@ components:
               password:
                 type: string
                 description: Password for getting access to the new user account
+                maxLength: 32
+                minLength: 6
+                pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
+                example: mySecretPassword123
+                x-oapi-codegen-extra-tags:
+                  validate: required
+            additionalProperties: false
+
+    LoginUnauthenticatedRequest:
+      description: Request body for logging in a user. Additional 2FA is
+        required for the user to be fully logged in.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+                description: Username of an user account
+                maxLength: 30
+                minLength: 3
+                example: Nesquiko12
+                pattern: ^(?=[a-zA-Z0-9]{3,30}$).*
+                x-oapi-codegen-extra-tags:
+                  validate: required
+              password:
+                type: string
+                description: Password of an user account
                 maxLength: 32
                 minLength: 6
                 pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
