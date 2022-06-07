@@ -11,7 +11,7 @@ import (
 func TestGenerateJWTPayloadCorrectUsernameClaim(t *testing.T) {
 	username := "Joe"
 	wantClaim := fmt.Sprintf("%q:%q", "username", username)
-	jwt, err := GenerateJWT(username)
+	jwt, err := GenerateUnauthenticatedJWT(username)
 
 	if err != nil {
 		t.Fatalf("err was not nil, %q", err.Error())
@@ -31,7 +31,7 @@ func TestGenerateJWTPayloadCorrectExpClaim(t *testing.T) {
 	username := "Joe"
 	exp := time.Now().Add(expirationDuration)
 	wantClaim := fmt.Sprintf("%q:%d", "exp", exp.Unix())
-	jwt, err := GenerateJWT(username)
+	jwt, err := GenerateUnauthenticatedJWT(username)
 
 	if err != nil {
 		t.Fatalf("err was not nil, %q", err.Error())

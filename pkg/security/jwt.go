@@ -11,7 +11,7 @@ import (
 var jwtKey []byte
 
 // expirationDuration is how long a JWT token is valid.
-var expirationDuration time.Duration = 5 * time.Hour
+var expirationDuration time.Duration = 5 * time.Minute
 
 // init function creates new key using crypto/rand. If the creation of the key
 // is not successful, it panics.
@@ -30,19 +30,22 @@ func init() {
 
 // claims represents JWT claims used in body of JWT.
 type claims struct {
-	Username string `json:"username"`
+	Username      string `json:"username"`
+	Authenticated bool   `json:"authenticated"`
 	jwt.StandardClaims
 }
 
-// GenerateJWT generates new JWT with a username as a claim. The JWT has an
-// expiration time equal to the expirationDuration variable.
-// The signing algorithm is HS256.
-func GenerateJWT(username string) (string, error) {
+// GenerateUnauthenticatedJWT generates new JWT with a username as a claim and
+// authenticated claim set to false, because 2FA is needed to be fully
+// authenticated. The JWT has an expiration time equal to the expirationDuration
+// variable. The signing algorithm is HS256.
+func GenerateUnauthenticatedJWT(username string) (string, error) {
 
 	expirationTime := time.Now().Add(expirationDuration)
 
 	claims := &claims{
-		Username: username,
+		Username:      username,
+		Authenticated: false,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		}}

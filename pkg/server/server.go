@@ -75,7 +75,7 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jwt, err := security.GenerateJWT(req.Username)
+	jwt, err := security.GenerateUnauthenticatedJWT(req.Username)
 	if err != nil {
 		respondWithError(w, UnexpectedErrorProblem(r.URL.Path))
 		return
