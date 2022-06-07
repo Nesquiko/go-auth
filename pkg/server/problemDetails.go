@@ -42,7 +42,7 @@ func GetProblemDetails(err error, relPath string) (problem *api.ProblemDetails) 
 	if mysqlErr, ok := err.(*mysql.MySQLError); ok {
 		problem = mySQLProblem(*mysqlErr, relPath)
 	} else if errors.Is(err, sql.ErrNoRows) {
-		problem = sqlNoRows(relPath)
+		problem = InvalidCredentials(relPath)
 	}
 
 	return problem
@@ -111,18 +111,4 @@ func sqlDuplicateEntry(err mysql.MySQLError) (title, detail string) {
 	}
 
 	return
-}
-
-// sqlNoRows is a util function for creating a problem details response when a
-// submitted username was not found in database.
-func sqlNoRows(relPath string) *api.ProblemDetails {
-	title := "Entered username was not found"
-	detail := "Username you entered was not found"
-
-	return &api.ProblemDetails{
-		StatusCode: http.StatusUnauthorized,
-		Title:      title,
-		Detail:     detail,
-		Instance:   relPath,
-	}
 }
