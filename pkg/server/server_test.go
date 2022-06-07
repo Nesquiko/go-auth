@@ -357,8 +357,8 @@ func TestLoginUsernameDoesntExists(t *testing.T) {
 	req.Header.Add(consts.ContentType, consts.ApplicationJSON)
 
 	wantCode := http.StatusUnauthorized
-	wantTitle := "Entered username was not found"
-	wantDetail := "Username you entered was not found"
+	wantTitle := "Invalid credentials"
+	wantDetail := "Submitted credentials are invalid"
 	wantInstance := loginPath
 
 	wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
