@@ -3,8 +3,12 @@
 package server
 
 import (
+	"crypto/rand"
+	"encoding/base32"
 	"encoding/json"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/Nesquiko/go-auth/pkg/api"
 	"github.com/Nesquiko/go-auth/pkg/consts"
@@ -75,7 +79,7 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jwt, err := security.GenerateUnauthenticatedJWT(req.Username)
+	jwt, err := security.GenerateJWT(req.Username, false)
 	if err != nil {
 		respondWithError(w, UnexpectedErrorProblem(r.URL.Path))
 		return
@@ -85,7 +89,32 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 	respondWithSuccess(w, response)
 }
 
-func (s GoAuthServer) Setup2FA(w http.ResponseWriter, r *http.Request) {}
+func (s GoAuthServer) Setup2FA(w http.ResponseWriter, r *http.Request) {
+
+	bearer := r.Header.Get(consts.Authorization)
+	if bearer == "" {
+		respondWithError(w, Unauthorized(r.URL.Path))
+		return
+	}
+
+	token := strings.Split(bearer, consts.BearerPrefix)[1]
+	c, err := security.ValidateToken(token)
+	if err != nil {
+		respondWithError(w, Unauthorized(r.URL.Path))
+		return
+	}
+
+	if c.ExpiresAt > time.Now().Unix() {
+		respondWithError(w, Unauthorized(r.URL.Path))
+		return
+	}
+
+	random := make([]byte, 10)
+	rand.Read(random)
+	secret := base32.StdEncoding.EncodeToString(random)
+	response := api.Secret2FAResponse{Secret: secret}
+	respondWithSuccess(w, response)
+}
 
 func (s GoAuthServer) Verify2FA(w http.ResponseWriter, r *http.Request) {}
 
