@@ -2,6 +2,8 @@ package security
 
 import (
 	"crypto/rand"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -35,17 +37,17 @@ type claims struct {
 	jwt.StandardClaims
 }
 
-// GenerateUnauthenticatedJWT generates new JWT with a username as a claim and
+// GenerateJWT generates new JWT with a username as a claim and
 // authenticated claim set to false, because 2FA is needed to be fully
 // authenticated. The JWT has an expiration time equal to the expirationDuration
 // variable. The signing algorithm is HS256.
-func GenerateUnauthenticatedJWT(username string) (string, error) {
+func GenerateJWT(username string, authenticated bool) (string, error) {
 
 	expirationTime := time.Now().Add(expirationDuration)
 
 	claims := &claims{
 		Username:      username,
-		Authenticated: false,
+		Authenticated: authenticated,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		}}
@@ -57,4 +59,25 @@ func GenerateUnauthenticatedJWT(username string) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func ValidateToken(tokenString string) (*claims, error) {
+	c := &claims{}
+
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+
+		return jwtKey, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if token.Valid {
+		return c, nil
+	}
+
+	return nil, errors.New("invalid JWT token")
 }
