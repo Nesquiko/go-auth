@@ -6,9 +6,9 @@ import (
 	"crypto/rand"
 	"encoding/base32"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/Nesquiko/go-auth/pkg/api"
 	"github.com/Nesquiko/go-auth/pkg/consts"
@@ -104,15 +104,16 @@ func (s GoAuthServer) Setup2FA(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.ExpiresAt > time.Now().Unix() {
-		respondWithError(w, Unauthorized(r.URL.Path))
-		return
-	}
-
 	random := make([]byte, 10)
 	rand.Read(random)
 	secret := base32.StdEncoding.EncodeToString(random)
-	response := api.Secret2FAResponse{Secret: secret}
+
+	authLink := fmt.Sprintf(
+		"otpauth://totp/GoAuth:%s?secret=%s&issuer=GoAuth",
+		c.Username,
+		secret,
+	)
+	response := api.Secret2FAResponse{QrURI: &authLink}
 	respondWithSuccess(w, response)
 }
 
