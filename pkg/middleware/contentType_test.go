@@ -3,7 +3,6 @@ package middleware
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -69,20 +68,24 @@ func TestContentTypeFilterInvalidHeader(t *testing.T) {
 			wantDetail := "Content-Type header is not application/json"
 			wantInstance := "/signup"
 
-			wantBody := fmt.Sprintf("{%q:%d,%q:%q,%q:%q,%q:%q}\n",
-				"status_code", wantCode,
-				"title", wantTitle,
-				"detail", wantDetail,
-				"instance", wantInstance,
-			)
-
 			res := executeRequest(req)
-
-			if res.Code != wantCode {
-				t.Errorf("Expected status code to be %d, but was %d", wantCode, res.Code)
+			var pd api.ProblemDetails
+			err = json.Unmarshal(res.Body.Bytes(), &pd)
+			if err != nil {
+				t.Fatalf("Error when unmarshalling: %s", err.Error())
 			}
-			if res.Body.String() != wantBody {
-				t.Errorf("Expected response body to be %s, but was %s", wantBody, res.Body)
+
+			if pd.StatusCode != wantCode {
+				t.Errorf("Status code, expected %d, but was %d", wantCode, pd.StatusCode)
+			}
+			if pd.Title != wantTitle {
+				t.Errorf("Title, expected %q, but was %q", wantTitle, pd.Title)
+			}
+			if pd.Detail != wantDetail {
+				t.Errorf("Detail, expected %q, but was %q", wantDetail, pd.Detail)
+			}
+			if pd.Instance != wantInstance {
+				t.Errorf("Instance, expected %q, but was %q", wantInstance, pd.Instance)
 			}
 		})
 	}
