@@ -108,6 +108,11 @@ func (s GoAuthServer) Setup2FA(w http.ResponseWriter, r *http.Request) {
 	rand.Read(random)
 	secret := base32.StdEncoding.EncodeToString(random)
 
+	err = db.DBConn.Save2FASecret(c.Username, secret)
+	if err != nil {
+		respondWithError(w, UnexpectedErrorProblem(r.URL.Path))
+		return
+	}
 	authLink := fmt.Sprintf(
 		"otpauth://totp/GoAuth:%s?secret=%s&issuer=GoAuth",
 		c.Username,
