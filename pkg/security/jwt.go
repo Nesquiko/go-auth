@@ -62,19 +62,22 @@ func GenerateJWT(username string, authenticated bool) (string, error) {
 }
 
 func ValidateToken(tokenString string) (*claims, error) {
-	c := &claims{}
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&claims{},
+		func(t *jwt.Token) (interface{}, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+			}
 
-	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-		}
-
-		return jwtKey, nil
-	})
+			return jwtKey, nil
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 
+	c := token.Claims.(*claims)
 	if token.Valid {
 		return c, nil
 	}
