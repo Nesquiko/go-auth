@@ -7,19 +7,19 @@ const (
 	UnauthBearerTokenScopes = "unauthBearerToken.Scopes"
 )
 
-// A problem details response, which occured during processing of a request (adheres to RFC 7807).
+// A problem details response, which occured during processing of a request. (Trying to adhere to RFC 7807)
 type ProblemDetails struct {
-	// A http status code describing a problem. Matches the status code of the response.
+	// Human-readable explanation specific to this occurrence of the problem
+	Detail string `json:"detail"`
+
+	// A URI reference that identifies the specific occurrence of the problem
+	Instance string `json:"instance"`
+
+	// A http status code describing a problem
 	StatusCode int `json:"status_code"`
 
 	// A short, human-readable summary of the problem type
 	Title string `json:"title"`
-
-	// Human-readable explanation specific to this occurrence of the problem
-	Detail string `json:"detail"`
-
-	// A URI reference that identifies the specific occurrence of the problem.
-	Instance string `json:"instance"`
 }
 
 // LoginResponse defines model for LoginResponse.
@@ -30,7 +30,7 @@ type LoginResponse struct {
 
 // Secret2FAResponse defines model for Secret2FAResponse.
 type Secret2FAResponse struct {
-	Secret string `json:"secret"`
+	QrURI *string `json:"qrURI,omitempty"`
 }
 
 // VerifyResponse defines model for VerifyResponse.
