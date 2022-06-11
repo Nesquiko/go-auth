@@ -18,6 +18,9 @@ type DBConnection interface {
 
 	// SaveUser saves the UserModel passed as parameter to a database.
 	SaveUser(user *UserModel) error
+
+	// Save2FASecret saves secret for 2FA
+	Save2FASecret(username, secret string) error
 }
 
 // connection struct with embedded sql.DB struct serving as a layer between

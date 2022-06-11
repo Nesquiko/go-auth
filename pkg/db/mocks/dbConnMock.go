@@ -50,3 +50,9 @@ func (dbConn DBConnectionMock) SaveUser(user *db.UserModel) error {
 
 	return nil
 }
+
+func (dbConn DBConnectionMock) Save2FASecret(username, secret string) error {
+	fakeDB[username].Secret2FA = sql.NullString{String: secret}
+
+	return nil
+}

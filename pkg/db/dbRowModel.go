@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -19,13 +20,20 @@ type UserDBEntity struct {
 
 	// Password hash of users account password.
 	PasswordHash string
+
+	// Secret2FA is used during 2FA
+	Secret2FA sql.NullString
+
+	// Enabled2FA indicates if user enabled 2FA
+	Enabled2FA bool
 }
 
 // String returns string representation of a UserDBEntity.
 func (u UserDBEntity) String() string {
-	return fmt.Sprintf("username: %s | email: %s | uuid: %s",
+	return fmt.Sprintf("username: %s | email: %s | enabled 2FA: %v | uuid: %s",
 		u.Username,
 		u.Email,
+		u.Enabled2FA,
 		u.Uuid.String())
 }
 
@@ -45,5 +53,6 @@ type UserModel struct {
 func (u UserModel) String() string {
 	return fmt.Sprintf("username: %s | email: %s",
 		u.Username,
-		u.Email)
+		u.Email,
+	)
 }

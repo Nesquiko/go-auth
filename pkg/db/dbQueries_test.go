@@ -28,7 +28,7 @@ func Test_connectionSaveUser(t *testing.T) {
 	query := "INSERT INTO users"
 
 	mock.ExpectExec(query).
-		WithArgs(model.Username, model.Email, model.PasswordHash).
+		WithArgs(model.Username, model.Email, model.PasswordHash, nil, 0).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	if err := stubDB.SaveUser(&model); err != nil {
@@ -43,11 +43,27 @@ func Test_connectionSaveUserError(t *testing.T) {
 	query := "INSERT INTO users"
 
 	mock.ExpectExec(query).
-		WithArgs(model.Username, model.Email, model.PasswordHash).
+		WithArgs(model.Username, model.Email, model.PasswordHash, nil, 0).
 		WillReturnError(errors.New("testing error"))
 
 	if err := stubDB.SaveUser(&model); err == nil {
 		t.Errorf("error was expected: %s", err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestSave2FASecretNullWhenNotSet(t *testing.T) {
+	query := "UPDATE users SET secret2FA"
+	secret := "ZSOOSQWFTYYO7VZI"
+
+	mock.ExpectExec(query).
+		WithArgs(secret, model.Username).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+
+	if err := stubDB.Save2FASecret(model.Username, secret); err != nil {
+		t.Errorf("error was not expected: %s", err)
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
