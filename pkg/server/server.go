@@ -89,6 +89,8 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 	respondWithSuccess(w, response)
 }
 
+// Setup2FA creates new 2FA secret for user and returns a 2FA uri
+// for generating QR code.
 func (s GoAuthServer) Setup2FA(w http.ResponseWriter, r *http.Request) {
 
 	bearer := r.Header.Get(consts.Authorization)
