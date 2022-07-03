@@ -59,3 +59,19 @@ func (db connection) Save2FASecret(username, secret string) error {
 
 	return nil
 }
+
+// Get2FASecret returns a secret used for 2FA. If an error occured, returns it.
+func (db connection) Get2FASecret(username string) (string, error) {
+	var secret string
+	err := db.QueryRow(
+		"SELECT secret2FA FROM users WHERE users.username=?",
+		username,
+	).Scan(&secret)
+
+	if err != nil {
+		return "", err
+	}
+
+	return secret, nil
+}
+

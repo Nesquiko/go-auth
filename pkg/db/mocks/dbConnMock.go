@@ -56,3 +56,7 @@ func (dbConn DBConnectionMock) Save2FASecret(username, secret string) error {
 
 	return nil
 }
+func (dbConn DBConnectionMock) Get2FASecret(username string) (string, error) {
+	panic("Not implemented")
+}
+

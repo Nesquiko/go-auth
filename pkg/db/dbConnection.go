@@ -21,6 +21,9 @@ type DBConnection interface {
 
 	// Save2FASecret saves secret for 2FA
 	Save2FASecret(username, secret string) error
+
+	// Get2FASecret retrieves 2FA secret
+	Get2FASecret(username string) (string, error)
 }
 
 // connection struct with embedded sql.DB struct serving as a layer between
