@@ -12,8 +12,9 @@ import (
 // jwtKey is used as a secret when generating and validating a JWT token.
 var jwtKey []byte
 
-// expirationDuration is how long a JWT token is valid.
-var expirationDuration time.Duration = 5 * time.Minute
+// expirationDurationUnauth is how long a JWT token is valid.
+var expirationDurationUnauth time.Duration = 5 * time.Minute
+var expirationDurationAuth time.Duration = 3 * 24 * time.Hour
 
 // init function creates new key using crypto/rand. If the creation of the key
 // is not successful, it panics.
@@ -43,7 +44,12 @@ type claims struct {
 // variable. The signing algorithm is HS256.
 func GenerateJWT(username string, authenticated bool) (string, error) {
 
-	expirationTime := time.Now().Add(expirationDuration)
+	var expirationTime time.Time
+	if authenticated {
+		expirationTime = time.Now().Add(expirationDurationUnauth)
+	} else {
+		expirationTime = time.Now().Add(expirationDurationUnauth)
+	}
 
 	claims := &claims{
 		Username:      username,

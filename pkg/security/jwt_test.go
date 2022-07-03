@@ -29,7 +29,7 @@ func TestGenerateJWTPayloadCorrectUsernameClaim(t *testing.T) {
 
 func TestGenerateJWTPayloadCorrectExpClaim(t *testing.T) {
 	username := "Joe"
-	exp := time.Now().Add(expirationDuration)
+	exp := time.Now().Add(expirationDurationUnauth)
 	wantClaim := fmt.Sprintf("%q:%d", "exp", exp.Unix())
 	jwt, err := GenerateJWT(username, false)
 
