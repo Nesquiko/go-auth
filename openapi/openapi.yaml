@@ -60,6 +60,9 @@ paths:
       operationId: verify2FA
       security:
         - unauthBearerToken: []
+      requestBody:
+        required: true
+        $ref: '#/components/requestBodies/Verify2FARequest'
       responses:
         200:
           $ref: '#/components/responses/VerifyResponse'
@@ -172,6 +175,24 @@ components:
                 minLength: 6
                 pattern: ^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,32})\S$
                 example: mySecretPassword123
+                x-oapi-codegen-extra-tags:
+                  validate: required
+            additionalProperties: false
+
+    Verify2FARequest:
+      description: Request body for verifying 2FA. 
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - otp
+            properties:
+              otp:
+                type: integer
+                description: OTP for 2FA
+                example: 451789
                 x-oapi-codegen-extra-tags:
                   validate: required
             additionalProperties: false
