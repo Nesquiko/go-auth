@@ -34,6 +34,15 @@ func InvalidCredentials(relPath string) *api.ProblemDetails {
 	}
 }
 
+func Unauthorized(relPaht string) *api.ProblemDetails {
+	return &api.ProblemDetails{
+		StatusCode: http.StatusUnauthorized,
+		Title:      "Invalid token",
+		Detail:     "Token you submitted was not valid.",
+		Instance:   relPaht,
+	}
+}
+
 // GetProblemDetails is used when a error needs to be identified and user needs
 // a specific problem details response corresponding to the identified error.
 func GetProblemDetails(err error, relPath string) (problem *api.ProblemDetails) {

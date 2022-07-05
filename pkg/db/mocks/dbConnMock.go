@@ -50,3 +50,16 @@ func (dbConn DBConnectionMock) SaveUser(user *db.UserModel) error {
 
 	return nil
 }
+
+func (dbConn DBConnectionMock) Save2FASecret(username, secret string) error {
+	fakeDB[username].Secret2FA = sql.NullString{String: secret}
+
+	return nil
+}
+func (dbConn DBConnectionMock) Get2FASecret(username string) (string, error) {
+	panic("Not implemented")
+}
+
+func (dbConn DBConnectionMock) UpdateEnabled2FA(username string, enabled bool) error {
+	panic("Not implemented")
+}

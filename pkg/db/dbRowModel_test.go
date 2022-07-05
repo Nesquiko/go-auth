@@ -10,7 +10,14 @@ import (
 func TestUserDBEntity_String(t *testing.T) {
 	id, _ := uuid.NewUUID()
 	username, email, passwdHash := "Johny", "john@foo.bar", "$asdfioj5641684"
-	want := fmt.Sprintf("username: %s | email: %s | uuid: %s", username, email, id.String())
+
+	want := fmt.Sprintf(
+		"username: %s | email: %s | enabled 2FA: %v | uuid: %s",
+		username,
+		email,
+		false,
+		id.String(),
+	)
 
 	u := UserDBEntity{Uuid: id, Username: username, Email: email, PasswordHash: passwdHash}
 

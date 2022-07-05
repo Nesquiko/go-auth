@@ -3,13 +3,19 @@
 package server
 
 import (
+	"crypto/rand"
+	"encoding/base32"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/Nesquiko/go-auth/pkg/api"
 	"github.com/Nesquiko/go-auth/pkg/consts"
 	"github.com/Nesquiko/go-auth/pkg/db"
 	"github.com/Nesquiko/go-auth/pkg/security"
+	"github.com/dgryski/dgoogauth"
 )
 
 // GoAuthServer is an empty struct used as a representation of a handler for
@@ -75,7 +81,7 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jwt, err := security.GenerateJWT(req.Username)
+	jwt, err := security.GenerateJWT(req.Username, false)
 	if err != nil {
 		respondWithError(w, UnexpectedErrorProblem(r.URL.Path))
 		return
@@ -85,9 +91,114 @@ func (s GoAuthServer) Login(w http.ResponseWriter, r *http.Request) {
 	respondWithSuccess(w, response)
 }
 
-func (s GoAuthServer) Setup2FA(w http.ResponseWriter, r *http.Request) {}
+// Setup2FA creates new 2FA secret for user and returns a 2FA uri
+// for generating QR code.
+func (s GoAuthServer) Setup2FA(w http.ResponseWriter, r *http.Request) {
 
-func (s GoAuthServer) Verify2FA(w http.ResponseWriter, r *http.Request) {}
+	bearer := r.Header.Get(consts.Authorization)
+	if bearer == "" {
+		respondWithError(w, Unauthorized(r.URL.Path))
+		return
+	}
+
+	token := strings.Split(bearer, consts.BearerPrefix)[1]
+	c, err := security.ValidateToken(token)
+	if err != nil {
+		respondWithError(w, Unauthorized(r.URL.Path))
+		return
+	}
+
+	random := make([]byte, 10)
+	rand.Read(random)
+	secret := base32.StdEncoding.EncodeToString(random)
+
+	err = db.DBConn.Save2FASecret(c.Username, secret)
+	if err != nil {
+		respondWithError(w, UnexpectedErrorProblem(r.URL.Path))
+		return
+	}
+	authLink := fmt.Sprintf(
+		"otpauth://totp/GoAuth:%s?secret=%s&issuer=GoAuth",
+		c.Username,
+		secret,
+	)
+	response := api.Secret2FAResponse{QrURI: &authLink}
+	respondWithSuccess(w, response)
+}
+
+func (s GoAuthServer) Verify2FA(w http.ResponseWriter, r *http.Request) {
+
+	bearer := r.Header.Get(consts.Authorization)
+	if bearer == "" {
+		respondWithError(w, Unauthorized(r.URL.Path))
+		return
+	}
+
+	token := strings.Split(bearer, consts.BearerPrefix)[1]
+	c, err := security.ValidateToken(token)
+	if err != nil {
+		respondWithError(w, Unauthorized(r.URL.Path))
+		return
+	}
+
+	sec, _ := db.DBConn.Get2FASecret(c.Username)
+	otpc := &dgoogauth.OTPConfig{
+		Secret:      sec,
+		WindowSize:  3,
+		HotpCounter: 0,
+	}
+	var req api.Verify2FAJSONRequestBody
+	err = validateJSONRequestBody(w, r, &req)
+	if err != nil {
+		respondWithError(w, BadRequest(err, r.URL.Path))
+		return
+	}
+
+	ok, err := otpc.Authenticate(strconv.FormatInt(int64(req.Otp), 10))
+	if err != nil {
+		respondWithError(w, UnexpectedErrorProblem(r.URL.Path))
+		return
+	}
+
+	if !ok {
+		respondWithError(w, Unauthorized(r.URL.Path))
+		return
+	}
+
+	jwt, err := security.GenerateJWT(c.Username, true)
+	if err != nil {
+		respondWithError(w, UnexpectedErrorProblem(r.URL.Path))
+		return
+	}
+	response := api.VerifyResponse{
+		AccessToken: jwt,
+	}
+
+	db.DBConn.UpdateEnabled2FA(c.Username, true)
+	respondWithSuccess(w, response)
+}
+
+func (s GoAuthServer) TestAuth(w http.ResponseWriter, r *http.Request) {
+	bearer := r.Header.Get(consts.Authorization)
+	if bearer == "" {
+		respondWithError(w, Unauthorized(r.URL.Path))
+		return
+	}
+
+	token := strings.Split(bearer, consts.BearerPrefix)[1]
+	c, err := security.ValidateToken(token)
+	if err != nil {
+		respondWithError(w, Unauthorized(r.URL.Path))
+		return
+	}
+
+	if !c.Authenticated {
+		respondWithError(w, Unauthorized(r.URL.Path))
+		return
+	}
+
+	respondWithSuccess(w, "Full access granted")
+}
 
 // respondWithSuccess takes a response to be returned to a user making a
 // request and serializes it into a JSON. Then sets a http.StatusOK as the

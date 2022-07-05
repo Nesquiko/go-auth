@@ -15,7 +15,10 @@ require (
 	github.com/google/uuid v1.3.0
 )
 
-require gopkg.in/yaml.v3 v3.0.0 // indirect
+require (
+	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3 // indirect
+	gopkg.in/yaml.v3 v3.0.0 // indirect
+)
 
 require (
 	github.com/go-chi/chi v1.5.4
