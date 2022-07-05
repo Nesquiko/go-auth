@@ -24,6 +24,8 @@ type DBConnection interface {
 
 	// Get2FASecret retrieves 2FA secret
 	Get2FASecret(username string) (string, error)
+
+	UpdateEnabled2FA(username string, enabled bool) error
 }
 
 // connection struct with embedded sql.DB struct serving as a layer between

@@ -75,3 +75,16 @@ func (db connection) Get2FASecret(username string) (string, error) {
 	return secret, nil
 }
 
+func (db connection) UpdateEnabled2FA(username string, enabled bool) error {
+	_, err := db.Exec(
+		"UPDATE users SET enabled2FA = ? WHERE username = ?",
+		enabled,
+		username,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

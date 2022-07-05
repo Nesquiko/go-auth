@@ -60,3 +60,6 @@ func (dbConn DBConnectionMock) Get2FASecret(username string) (string, error) {
 	panic("Not implemented")
 }
 
+func (dbConn DBConnectionMock) UpdateEnabled2FA(username string, enabled bool) error {
+	panic("Not implemented")
+}
