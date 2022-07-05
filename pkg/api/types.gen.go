@@ -4,6 +4,7 @@
 package api
 
 const (
+	AuthBearerTokenScopes   = "authBearerToken.Scopes"
 	UnauthBearerTokenScopes = "unauthBearerToken.Scopes"
 )
 

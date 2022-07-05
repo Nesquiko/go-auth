@@ -25,6 +25,9 @@ type ServerInterface interface {
 
 	// (POST /signup)
 	Signup(w http.ResponseWriter, r *http.Request)
+
+	// (GET /test-auth)
+	TestAuth(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -91,6 +94,23 @@ func (siw *ServerInterfaceWrapper) Signup(w http.ResponseWriter, r *http.Request
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Signup(w, r)
+	})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// TestAuth operation middleware
+func (siw *ServerInterfaceWrapper) TestAuth(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AuthBearerTokenScopes, []string{""})
+
+	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.TestAuth(w, r)
 	})
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -224,6 +244,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/signup", wrapper.Signup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/test-auth", wrapper.TestAuth)
 	})
 
 	return r
