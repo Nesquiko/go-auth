@@ -88,3 +88,20 @@ func (db connection) UpdateEnabled2FA(username string, enabled bool) error {
 
 	return nil
 }
+func (db connection) GetEnabled2FA(username string) (bool, error) {
+	var enabled2FAStr string
+
+	err := db.QueryRow(
+		"SELECT enabled2FA FROM users WHERE users.username=?",
+		username,
+	).Scan(&enabled2FAStr)
+
+	if err != nil {
+		return false, err
+	}
+
+	if enabled2FAStr == "\x00" {
+		return false, nil
+	}
+	return true, nil
+}

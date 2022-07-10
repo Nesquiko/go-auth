@@ -48,7 +48,7 @@ func GenerateJWT(username string, authenticated bool) (string, error) {
 	if authenticated {
 		expirationTime = time.Now().Add(expirationDurationUnauth)
 	} else {
-		expirationTime = time.Now().Add(expirationDurationUnauth)
+		expirationTime = time.Now().Add(expirationDurationAuth)
 	}
 
 	claims := &claims{

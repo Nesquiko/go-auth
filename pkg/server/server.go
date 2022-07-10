@@ -108,6 +108,17 @@ func (s GoAuthServer) Setup2FA(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	enabled, err := db.DBConn.GetEnabled2FA(c.Username)
+	if err != nil {
+		respondWithError(w, UnexpectedErrorProblem(r.URL.Path))
+		return
+	}
+
+	if enabled {
+		respondWithError(w, Unauthorized(r.URL.Path))
+		return
+	}
+
 	random := make([]byte, 10)
 	rand.Read(random)
 	secret := base32.StdEncoding.EncodeToString(random)
@@ -174,7 +185,16 @@ func (s GoAuthServer) Verify2FA(w http.ResponseWriter, r *http.Request) {
 		AccessToken: jwt,
 	}
 
-	db.DBConn.UpdateEnabled2FA(c.Username, true)
+	enabled, err := db.DBConn.GetEnabled2FA(c.Username)
+	if err != nil {
+		respondWithError(w, UnexpectedErrorProblem(r.URL.Path))
+		return
+	}
+
+	if !enabled {
+		db.DBConn.UpdateEnabled2FA(c.Username, true)
+	}
+
 	respondWithSuccess(w, response)
 }
 
